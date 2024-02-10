@@ -53,6 +53,7 @@ class Prover(BaseProverNeuron):
         This function is a placeholder and should be replaced with a call to your prover's TGI endpoint.
         """
         output = await self.client.generate(synapse.query, synapse.sampling_params.seed)
+        await self.client.close_session()
         bt.logging.debug('prover output', output)
 
         synapse.completion = output
@@ -77,6 +78,7 @@ class Prover(BaseProverNeuron):
         """
 
         output = await self.client.generate(synapse.query, synapse.sampling_params.seed)
+        await self.client.close_session()
         bt.logging.debug('prover output', output)
 
         synapse.completion = output

@@ -16,6 +16,7 @@
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
+import aiohttp
 import time
 import torch
 import random
@@ -148,7 +149,17 @@ async def challenge_data( self ):
     )
 
     url = self.config.neuron.challenge_url
+
     private_input = requests.get(url).json()
+    async with aiohttp.ClientSession() as session:
+        async with session.get(url) as response:
+            if response.status == 200:
+                private_input = await response.json()
+            else:
+                # Handle non-200 responses appropriately
+                private_input = {}
+                bt.logging.error(f"Failed to get private input from {url}")
+
     prompt = private_input["query"]
     seed = random.randint(1, 2**32 - 1)
 
@@ -161,14 +172,6 @@ async def challenge_data( self ):
     # --- Generate the ground truth output
     ground_truth_output = await self.client.generate(prompt, seed) 
 
-    verifier_stats_dict = {
-        'prompt': prompt,
-        'seed': seed,
-        'ground_truth_output': ground_truth_output
-    }
-
-    bt.logging.trace('verifier_stats_dict', verifier_stats_dict) 
-    
     # --- get hashing function
     ground_truth_hash = hashing_function(ground_truth_output)
 

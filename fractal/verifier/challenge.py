@@ -16,13 +16,12 @@
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-import aiohttp
 import time
 import torch
 import random
 import typing
 import asyncio
-import requests
+import httpx
 import bittensor as bt
 
 from fractal import protocol
@@ -53,8 +52,6 @@ def verify( self, output, ground_truth_hash):
         bt.logging.debug(
             f"Output hash {output_hash} does not match ground truth hash {ground_truth_hash}"
         )
-        # bt.logging.debug(f"prover output: {output}")
-        # bt.logging.debug(f"ground truth output: {ground_truth_hash}")
         return False
 
     bt.logging.debug(
@@ -92,7 +89,6 @@ async def handle_challenge( self, uid: int, private_input: typing.Dict, ground_t
 
         output = response.completion
         
-        bt.logging.debug('output', output)
         verified = verify( self, output, ground_truth_hash )
 
         output_dict = (
@@ -150,15 +146,8 @@ async def challenge_data( self ):
 
     url = self.config.neuron.challenge_url
 
-    private_input = requests.get(url).json()
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url) as response:
-            if response.status == 200:
-                private_input = await response.json()
-            else:
-                # Handle non-200 responses appropriately
-                private_input = {}
-                bt.logging.error(f"Failed to get private input from {url}")
+    private_input = httpx.get(url).json()
+
 
     prompt = private_input["query"]
     seed = random.randint(1, 2**32 - 1)

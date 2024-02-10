@@ -55,10 +55,6 @@ async def forward(self):
 
     # --- Generate the query.
     event = await challenge_data(self)
-    print(event)
-    print(event)
-    print(event)
-    print(event)
 
     # --- Log the event
     log_event(self, event)

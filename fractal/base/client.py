@@ -2,7 +2,7 @@ import aiohttp
 import json
 import asyncio
 
-class ittpClient:
+class HttpClient:
     def __init__(self, base_url):
         self.base_url = base_url
         self.session = None

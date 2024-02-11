@@ -106,6 +106,7 @@ async def handle_challenge( self, uid: int, private_input: typing.Dict, ground_t
         )
 
         response = await self.client.generate(prompt, sampling_params.seed)
+        await self.client.close_session()
 
         synapse.completion = response
         
@@ -165,6 +166,7 @@ async def challenge_data( self ):
 
     # --- Generate the ground truth output
     ground_truth_output = await self.client.generate(prompt, seed) 
+    await self.client.close_session()
 
     # --- get hashing function
     ground_truth_hash = hashing_function(ground_truth_output)

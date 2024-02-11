@@ -41,16 +41,16 @@ class Prover(BaseProverNeuron):
             self, synapse: Inference
     ):
         """
-        Sends an inference request to the prover's TGI endpoint.
+        Sends an inference request to the prover's model endpoint.
 
         Args:
             synapse (typing.Union[Challenge, Inference]): The synapse object containing the request data.
 
         Returns:
             typing.Tuple[bool, str]: A tuple containing a boolean indicating whether the request was successful,
-                                    and a string containing the response from the prover's TGI endpoint.
+                                    and a string containing the response from the prover's model endpoint.
 
-        This function is a placeholder and should be replaced with a call to your prover's TGI endpoint.
+        This function is a placeholder and should be replaced with a call to your prover's model endpoint.
         """
         output = await self.client.generate(synapse.query, synapse.sampling_params.seed)
         await self.client.close_session()
@@ -64,16 +64,16 @@ class Prover(BaseProverNeuron):
             self, synapse: Challenge
     ):
         """
-        Sends an inference request to the prover's TGI endpoint.
+        Sends an inference request to the prover's model endpoint.
 
         Args:
             synapse (typing.Union[Challenge, Inference]): The synapse object containing the request data.
 
         Returns:
             typing.Tuple[bool, str]: A tuple containing a boolean indicating whether the request was successful,
-                                    and a string containing the response from the prover's TGI endpoint.
+                                    and a string containing the response from the prover's model endpoint.
 
-        This function is a placeholder and should be replaced with a call to your prover's TGI endpoint.
+        This function is a placeholder and should be replaced with a call to your prover's model endpoint.
         """
 
         output = await self.client.generate(synapse.query, synapse.sampling_params.seed)

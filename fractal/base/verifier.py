@@ -17,7 +17,6 @@
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-import os
 import sys
 import copy
 import torch
@@ -25,13 +24,9 @@ import asyncio
 import aioredis
 import argparse
 import threading
-import subprocess
 import bittensor as bt
 
-from shlex import quote
 from typing import List
-from copy import deepcopy
-from pprint import pformat
 from traceback import print_exception
 from substrateinterface.base import SubstrateInterface
 

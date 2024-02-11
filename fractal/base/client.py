@@ -2,7 +2,7 @@ import aiohttp
 import json
 import asyncio
 
-class HttpClient:
+class ittpClient:
     def __init__(self, base_url):
         self.base_url = base_url
         self.session = None
@@ -34,13 +34,13 @@ class HttpClient:
                 else:
                     # Handle other non-successful statuses
                     return f'Error: received status code {response.status}'
-        except aiohttp.ClientError as e:
-            # Handle client-side errors (e.g., connection issues)
-            return f'Client error occurred: {str(e)}'
-        except asyncio.TimeoutError:
-            # Handle timeout error
-            return 'Request timed out'
-        # Additional specific exceptions can be caught and handled as needed
 
-    # Ensure you call close_session() when your application is shutting down
+        # Handle client-side errors (e.g., connection issues)
+        except aiohttp.ClientError as e:
+            return f'Client error occurred: {str(e)}'
+
+        # Handle timeout error
+        except asyncio.TimeoutError:
+            return 'Request timed out'
+
 

@@ -20,7 +20,7 @@
 import pydantic
 import bittensor as bt
 import random
-from typing import List
+from typing import List, Optional
 
 
 class InferenceeSamplingParams(pydantic.BaseModel):
@@ -95,10 +95,11 @@ class Inference(bt.Synapse):
         description="The processed result of the streaming tokens.",
     )
 
-    required_hash_fields: List[str] = pydantic.Field(
-        ["query", "seed"],
+    required_hash_fields: Optional[List[str]] = pydantic.Field(
+        default_factory=lambda: ["query", "sampling_params"],
         title="Required Hash Fields",
         description="A list of fields that are required for the hash.",
+        allow_mutation=False,
     )
 
 
@@ -154,10 +155,11 @@ class Challenge(bt.Synapse):
         description="The processed result of the streaming tokens.",
     )
 
-    required_hash_fields: List[str] = pydantic.Field(
-        ["query", "sampling_params"],
+    required_hash_fields: Optional[List[str]] = pydantic.Field(
+        default_factory=lambda: ["query", "sampling_params"],
         title="Required Hash Fields",
         description="A list of fields that are required for the hash.",
+        allow_mutation=False,
     )
 
   

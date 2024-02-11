@@ -16,12 +16,10 @@
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-
 import pydantic
 import bittensor as bt
 import random
 from typing import List, Optional
-
 
 class InferenceeSamplingParams(pydantic.BaseModel):
     '''
@@ -64,16 +62,8 @@ class Inference(bt.Synapse):
     - `completion` (str): Stores the processed result of the streaming tokens. As tokens are streamed, decoded, and
                           processed, they are accumulated in the completion attribute. This represents the "final"
                           product or result of the streaming process.
-    - `required_hash_fields` (List[str]): A list of fields that are required for the hash.
+    - `required_hash_fields` (Optional[List[str]]): A list of fields that are required for the hash.
 
-    Methods:
-    - `process_streaming_response`: This method asynchronously processes the incoming streaming response by decoding
-                                    the tokens and accumulating them in the `completion` attribute.
-
-    - `deserialize`: Converts the `completion` attribute into its desired data format, in this case, a string.
-
-    - `extract_response_json`: Extracts relevant JSON data from the response, useful for gaining insights on the response's
-                               metadata or for debugging purposes.
 
     Note: While you can directly use the `Challenge` class, it's designed to be extensible. Thus, you can create
     subclasses to further customize behavior for specific prompting scenarios or requirements.
@@ -103,8 +93,6 @@ class Inference(bt.Synapse):
     )
 
 
-
-
 class Challenge(bt.Synapse):
     """
     Challenge is a specialized implementation of the `StreamingSynapse` tailored for prompting functionalities within
@@ -123,16 +111,9 @@ class Challenge(bt.Synapse):
     - `completion` (str): Stores the processed result of the streaming tokens. As tokens are streamed, decoded, and
                           processed, they are accumulated in the completion attribute. This represents the "final"
                           product or result of the streaming process.
-    - `required_hash_fields` (List[str]): A list of fields that are required for the hash.
 
-    Methods:
-    - `process_streaming_response`: This method asynchronously processes the incoming streaming response by decoding
-                                    the tokens and accumulating them in the `completion` attribute.
+    - `required_hash_fields` (Optional[List[str]]): A list of fields that are required for the hash.
 
-    - `deserialize`: Converts the `completion` attribute into its desired data format, in this case, a string.
-
-    - `extract_response_json`: Extracts relevant JSON data from the response, useful for gaining insights on the response's
-                               metadata or for debugging purposes.
 
     Note: While you can directly use the `Challenge` class, it's designed to be extensible. Thus, you can create
     subclasses to further customize behavior for specific prompting scenarios or requirements.

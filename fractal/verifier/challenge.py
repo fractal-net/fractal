@@ -146,8 +146,13 @@ async def challenge_data( self ):
 
     url = self.config.neuron.challenge_url
 
-    private_input = httpx.get(url).json()
-
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url)
+        if response.status_code == 200:
+            private_input = response.json()
+        else:
+            private_input = None
+            raise ValueError("Failed to fetch or parse JSON from the URL")
 
     prompt = private_input["query"]
     seed = random.randint(1, 2**32 - 1)
@@ -183,9 +188,9 @@ async def challenge_data( self ):
 
     remove_reward_idxs = []
     for i, (verified, (response, uid)) in enumerate(responses):
-        bt.logging.trace(
-            f"Challenge iteration {i} uid {uid} response {str(response.completion if not self.config.mock else response)}"
-        )
+        # bt.logging.trace(
+        #     f"Challenge iteration {i} uid {uid} response {str(response.completion if not self.config.mock else response)}"
+        # )
 
         hotkey = self.metagraph.hotkeys[uid]
 

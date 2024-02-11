@@ -21,7 +21,6 @@ import pydantic
 import bittensor as bt
 
 from typing import List
-from starlette.responses import StreamingResponse
 
 
 class InferenceeSamplingParams(pydantic.BaseModel):
@@ -29,7 +28,7 @@ class InferenceeSamplingParams(pydantic.BaseModel):
     SamplingParams is a pydantic model that represents the sampling parameters for the model
     '''
     seed: int = pydantic.Field(
-        None,
+        ...,
         title="Seed",
         description="The seed used to generate the output.",
     )
@@ -86,7 +85,7 @@ class Inference(bt.StreamingSynapse):
     )
 
     sampling_params: ChallengeSamplingParams = pydantic.Field(
-        ChallengeSamplingParams(),
+        ...,
         title="Sampling Params",
         description="The sampling parameters for the TGI model.",
     )
@@ -144,7 +143,7 @@ class Challenge(bt.Synapse):
     )
 
     sampling_params: ChallengeSamplingParams = pydantic.Field(
-        ChallengeSamplingParams(),
+        ...,
         title="Sampling Params",
         description="The sampling parameters for the TGI model.",
     )

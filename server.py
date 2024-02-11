@@ -23,6 +23,10 @@ pipe = DiffusionPipeline.from_pretrained("damo-vilab/text-to-video-ms-1.7b", tor
 pipe.scheduler = DPMSolverMultistepScheduler.from_config(pipe.scheduler.config)
 pipe.enable_model_cpu_offload()
 
+def preprocess_text(text, limit=76):
+    tokens = text.split()[:limit]
+    return ' '.join(tokens)
+
 @app.post('/generate')
 async def generate(request_data: GenerationRequest):
     try:
@@ -31,7 +35,7 @@ async def generate(request_data: GenerationRequest):
         np.random.seed(seed)
         torch.manual_seed(seed)
         torch.cuda.manual_seed_all(seed)
-        prompt = request_data.text
+        prompt = preprocess_text(request_data.text)
 
         video_frames = pipe(prompt, num_inference_steps=25).frames
         video_path = export_to_video(video_frames)

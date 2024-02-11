@@ -98,12 +98,23 @@ async def handle_challenge( self, uid: int, private_input: typing.Dict, ground_t
         return verified, output_dict
     
     else:
-        prompt = private_input["query"]
 
         synapse = protocol.Challenge(
-            query = prompt,
+            query = private_input["query"],
             sampling_params=sampling_params,
         )
+
+        serialized_synapse = synapse.json()
+        deserialized_synapse = protocol.Challenge.parse_raw(serialized_synapse)
+        print(deserialized_synapse)
+        print(deserialized_synapse)
+        print(deserialized_synapse)
+        print("===================")
+        print(synapse)
+        print(synapse)
+        print(synapse)
+
+
 
         response = await self.client.generate(prompt, sampling_params.seed)
         await self.client.close_session()
@@ -161,7 +172,6 @@ async def challenge_data( self ):
 
     sampling_params = protocol.ChallengeSamplingParams(
         seed=seed,
-        do_sample=True,
     )
 
     # --- Generate the ground truth output

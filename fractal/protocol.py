@@ -19,7 +19,7 @@
 
 import pydantic
 import bittensor as bt
-
+import random
 from typing import List
 
 
@@ -28,7 +28,7 @@ class InferenceeSamplingParams(pydantic.BaseModel):
     SamplingParams is a pydantic model that represents the sampling parameters for the model
     '''
     seed: int = pydantic.Field(
-        ...,
+        default_factory=lambda: random.randint(0, 2**31 - 1),
         title="Seed",
         description="The seed used to generate the output.",
     )
@@ -38,14 +38,14 @@ class ChallengeSamplingParams(pydantic.BaseModel):
     SamplingParams is a pydantic model that represents the sampling parameters for the model
     '''
     seed: int = pydantic.Field(
-        None,
+        default_factory=lambda: random.randint(0, 2**31 - 1),
         title="Seed",
         description="The seed used to generate the output.",
     )
 
 
 
-class Inference(bt.StreamingSynapse):
+class Inference(bt.Synapse):
     """
     Challenge is a specialized implementation of the `StreamingSynapse` tailored for prompting functionalities within
     the Bittensor network. This class is intended to interact with a streaming response that contains a sequence of tokens,

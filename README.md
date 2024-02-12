@@ -33,8 +33,9 @@ Currently supporting python>=3.9,<3.11.
 # Compute Requirements
 The following table shows the VRAM, Storage, RAM, and CPU minimum requirements for running a verifier or prover.
 
+
+# Required: RTX 3090
 | Role | VRAM | Storage | RAM | CPU |
-| --- | --- | --- | --- | --- |
 | Prover   | 24GB | 32GB | 8GB | 8 Cores  |
 | Verifier | 24GB | 64GB | 16GB | 8 Cores |
 
@@ -156,8 +157,8 @@ pip install -e .
 You have now installed Fractal. You can now run a prover or verifier.
 
 
-# Why use a Redundant Deterministic Verification Network?
-Inspiration for Redundant Determinisitic Verification Networks came from Manifold Labs' TARGON and can be read about here: (https://github.com/manifold-inc/targon/tree/main). Fractal is adopting the framework of Provers and Verifiers and implementing text-to-video generation. Redundant verification networks are gamification-resistant-- a critical start to improving the resiliency of the Bittensor network. By solving gamification, these networks allow for optimizations to be built around real compute-- starting with edge-node inference. Fractal is working to develop and implement routing mechanisms that optimize inference response speeds. This will be critical to gaining end-user adoption in a scalable way on the Bittensor network. In a world where hundreds of apps are being built on Bittensor, and hundreds of thousands (or millions) of user requests are being sent to subnets, the network must minimize response times. 
+# Why use a Homogeneous Inference Network?
+Inspiration for Homogeneous Inference Networks came from Manifold Labs' TARGON and can be read about here: (https://github.com/manifold-inc/targon/tree/main). Fractal is adopting the framework of Provers and Verifiers and implementing text-to-video generation. Redundant verification networks are gamification-resistant-- a critical start to improving the resiliency of the Bittensor network. By solving gamification, these networks allow for optimizations to be built around real compute-- starting with edge-node inference. Fractal is working to develop and implement routing mechanisms that optimize inference response speeds. This will be critical to gaining end-user adoption in a scalable way on the Bittensor network. In a world where hundreds of apps are being built on Bittensor, and hundreds of thousands (or millions) of user requests are being sent to subnets, the network must minimize response times. 
 
 ## Role of a Prover
 A prover is a node that is responsible for generating a output from a query, private input, and a deterministic sampling params. 

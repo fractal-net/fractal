@@ -1,0 +1,7 @@
+torch
+diffusers==v0.25.0
+fastapi
+uvicorn
+pydantic
+loguru
+numpy

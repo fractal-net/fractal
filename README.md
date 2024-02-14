@@ -9,7 +9,7 @@ Currently supporting python>=3.9,<3.11.
     - [Install Redis](#install-redis)
     - [Install PM2](#install-pm2)
     - [Install Fractal](#install-fractal)
-1. [What is a Homogeneous Inference Grid?](#why-use-a-homogeneous-inference-grid)
+1. [Why use a Homogeneous Inference Grid?](#why-use-a-homogeneous-inference-grid)
    - [Role of a Prover](#role-of-a-prover)
    - [Role of a Verifier](#role-of-a-verifier)
 1. [Features of Fractal](#features-of-fractal)

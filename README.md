@@ -66,50 +66,7 @@ The following table shows the VRAM, Storage, RAM, and CPU minimum requirements f
 # Installation
 
 ## Overview
-In order to run Fractal, you need to install Docker, PM2, and Fractal package. The following instructions apply only to Ubuntu OSes. For your specific OS, please refer to the official documentation.
-
-<details>
-<summary>Install Docker</summary>
-
-Install docker on your machine. Follow the instructions [here](https://docs.docker.com/engine/install/). The following instructions apply only to Ubuntu OSes.
-
-### Set up Docker's apt repository.
-Before you install Docker Engine for the first time on a new host machine, you need to set up the Docker repository. Afterward, you can install and update Docker from the repository.x
-```bash
-# Add Docker's official GPG key:
-sudo apt-get update
-sudo apt-get install ca-certificates curl
-sudo install -m 0755 -d /etc/apt/keyrings
-sudo curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
-sudo chmod a+r /etc/apt/keyrings/docker.asc
-
-# Add the repository to Apt sources:
-echo \
-  "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
-  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" | \
-  sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-sudo apt-get update
-```
-
-### Install Docker Engine
-To install the latest version, run:
-```bash
-sudo apt-get install docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-```
-
-### Post Installation Steps
-To run docker commands without sudo, create a docker group and add your user.
-```bash
-sudo groupadd docker
-sudo usermod -aG docker $USER
-exit
-```
-Log back in and run the following command to verify that you can run docker commands without sudo.
-```bash
-docker ps
-```
-You have now installed Docker.
-</details>
+In order to run Fractal, you need to install PM2 and the Fractal package. The following instructions apply only to Ubuntu OSes. For your specific OS, please refer to the official documentation.
 
 <details>
 
@@ -194,23 +151,6 @@ this includes the following containers:
 **experimental** optionally, you can edit the docker-compose.yml file to include the proving container, but you will need to edit the docker-compose.yml file and uncomment out the prover container. Otherwise you can run the prover with PM2.
 
 
-### Docker
-
-<details>
-<summary>Run with Docker</summary>
-
-```docker
-  prover:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "8091:8091"
-    command: ./entrypoint.sh
-    volumes:
-      - ~/.bittensor/wallets:/root/.bittensor/wallets
-
-```
 and then edit the entrypoint.sh file to include the args specific for your prover.
 
 ```bash
@@ -267,42 +207,11 @@ this includes the following containers:
 ```bash
 ./scripts/generate_redis_password.sh
 ```
-this will output a secure password for you to use. You will then need to edit the docker-compose.yml file and replace the password with your new password.
+this will output a secure password for you to use. You will then need to edit the ecosystem.config.js file and replace the password with your new password.
 
-first use vim to edit the docker-compose.yml file:
-```bash
-vim neurons/verifier/docker-compose.yml
-```
-then replace the password with your new password:
-
-```docker
-  redis:
-    image: redis:latest
-    command: redis-server --requirepass YOUR_PASSWORD_HERE
-    ports:
-      - "6379:6379"
-```
-
-**experimental** optionally, you can edit the docker-compose.yml file to include the verifier container, but you will need to edit the docker-compose.yml file and uncomment out the verifier container. Otherwise you can run the verifier with PM2.
+You can now run your verifier with PM2.
 
 
-### Docker
-
-<details>
-<summary>Run with Docker</summary>
-
-```docker
-  verifier:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "8091:8091"
-    command: ./entrypoint.sh
-    volumes:
-      - ~/.bittensor/wallets:/root/.bittensor/wallets
-
-```
 and then edit the entrypoint.sh file to include the args specific for your prover.
 
 ```bash

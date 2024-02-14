@@ -54,7 +54,6 @@ async def forward(self):
     bt.logging.info(f"forward block: {self.block}")
 
     # --- Generate the query.
-    # event = await challenge_data(self)
     try:
         event = await challenge_data(self)
     except Exception as e:

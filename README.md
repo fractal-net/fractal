@@ -43,7 +43,7 @@ In order to run Fractal, you need to install PM2 and the Fractal package. The fo
 ### Install Redis
 
 ```
-sudo apt-get install redis-server
+sudo apt-get update && sudo apt-get install redis-server
 ```
 
 ### Install pm2
@@ -60,7 +60,7 @@ curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
 #### Install Node
 
 ```bash
-nvm install 18
+nvm install 18 && nvm use 18
 ```
 
 #### Install PM2

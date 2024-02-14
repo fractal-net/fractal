@@ -46,6 +46,7 @@ In order to run Fractal, you need to install PM2 and the Fractal package. The fo
 ```
 sudo apt-get update && sudo apt-get install redis-server
 sudo apt-get install libgl1-mesa-glx
+sudo apt-get install libglib2.0-0
 ```
 
 ### Install pm2

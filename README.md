@@ -33,6 +33,7 @@ The following table shows the VRAM, Storage, RAM, and CPU minimum requirements f
 |----------|------------|---------|------|---------|
 | Prover   | 24GB  3090 | 32GB    | 8GB  | 8 Cores |
 | Verifier | 24GB  3090 | 64GB    | 16GB | 8 Cores |
+*NOTE: ensure provers have a port open for TCP (on runpod, this will be TCP not HTTP)
 
 # Installation
 
@@ -127,7 +128,7 @@ Inside ecosystem.config.js you need to replace all entries like <YOUR_WALLET_HER
 
 <YOUR_INTERNAL_PORT> - replace this with the internal port your server is running on 
 
-<YOUR_EXTERNAL_PORT> - replace this with the external port your server is running on (this entire flag is not needed if it's the same as internal port)
+<YOUR_EXTERNAL_PORT> - replace this with the external port your server is running on (this entire flag is not needed if it's the same as internal port-- but with runpod it is often different)
 
 <YOUR_WALLET_NAME> - replace this with the name of your coldkey
 

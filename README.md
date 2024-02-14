@@ -7,105 +7,93 @@ Currently supporting python>=3.9,<3.11.
 > Note: The storage subnet is in an alpha stage and is subject to rapid development.
 
 # Table of Contents
-1. [Compute Requirements](#compute-requirements)
-1. [Roadmap](#roadmap)
-1. [Installation](#installation)
-    - [Install Docker](#install-docker)
-    - [Install PM2](#install-pm2)
-    - [Install TARGON](#install-targon)
-1. [What is a Redundant Deterministic Verification Network?](#what-is-a-redundant-deterministic-verification-network)
-   - [Role of a Prover](#role-of-a-prover)
-   - [Role of a Verifier](#role-of-a-verifier)
-1. [Features of TARGON](#features-of-targon)
-    - [Challenge Request](#challenge-request)
-    - [Inference Request (IN PROGRESS) ](#inference-request-(IN-PROGRESS))
-1. [How to Run TARGON](#how-to-run-targon)
-    - [Run a Prover](#run-a-prover)
-    - [Run a Verifier](#run-a-verifier)
-1. [Reward System](#reward-system)
-    - [Tier System](#tier-system)
-    - [Promotion/Relegation](#promotion/relegation)
-1. [How to Contribute](#how-to-contribute)
+1. [Compute Requirements]
+1. [Installation]
+    - [Install Redis]
+    - [Install PM2]
+    - [Install Fractal]
+1. [What is a Homogeneous Inference Grid?]
+   - [Role of a Prover]
+   - [Role of a Verifier]
+1. [Features of Fractal]
+    - [Challenge Request]
+    - [Inference Request 
+1. [How to Run Fractal]
+    - [Run a Prover]
+    - [Run a Verifier]
+1. [Reward System]
+    - [Tier System]
+    - [Promotion/Relegation]
+1. [How to Contribute]
 
 
 # Compute Requirements
 The following table shows the VRAM, Storage, RAM, and CPU minimum requirements for running a verifier or prover.
 
 
-# Required: RTX 3090
+## Required: RTX 3090
 | Role | GPU | Storage | RAM | CPU |
 
 | Prover   | 24GB  3090| 32GB | 8GB | 8 Cores  |
 
 | Verifier | 24GB  3090 | 64GB | 16GB | 8 Cores |
 
-# Roadmap
-
-<details open>
-<summary>Completed</summary>
-
-- [x] Challenge Request
-- [x] Reward System
-- [x] Bonding
-- [x] Database
-- [x] Auto Update
-- [x] Forwarding
-
-</details>
-
-<details>
-<summary>In Progress</summary>
-
-- [] Tiered Requests to match throughput
-- [] Inference Request
-- [] Front-end for Text to Video
-- [] Optimizations around latency
-</details>
-
 # Installation
 
 ## Overview
 In order to run Fractal, you need to install PM2 and the Fractal package. The following instructions apply only to Ubuntu OSes. For your specific OS, please refer to the official documentation.
 
-<details>
 
-<summary>Install PM2</summary>
+### Install Redis
 
-Install PM2 on your machine.
+```
+sudo apt-get install redis-server
+```
 
-### Download NVM
+### Install pm2
+
+To install pm2, download nvm, node, and finally pm2
+
+#### Download NVM
 To install or update nvm, you should run the install script. To do that, you may either download and run the script manually, or use the following cURL or Wget command:
+
 ```bash
 curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
 ```
-### Add NVM to bash profile
+
+#### Add NVM to bash profile
 Running either of the above commands downloads a script and runs it. The script clones the nvm repository to ~/.nvm, and attempts to add the source lines from the snippet below to the correct profile file (~/.bash_profile, ~/.zshrc, ~/.profile, or ~/.bashrc).
+
 ```bash
 export NVM_DIR="$([ -z "${XDG_CONFIG_HOME-}" ] && printf %s "${HOME}/.nvm" || printf %s "${XDG_CONFIG_HOME}/nvm")"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh" # This loads nvm
 ```
-### Install Node
+
+#### Install Node
+
 ```bash
-nvm install node
+nvm install 18
 ```
 
-### Install PM2
+#### Install PM2
+
 ```bash
 npm install pm2@latest -g
 ```
 You have now installed PM2.
 
-</details>
 
 ### Install Fractal
 
-### Clone the repository
+#### Clone the repository
+
 ```bash
 git clone https://github.com/fractal-net/fractal.git
 cd fractal
 ```
 
-### Install dependencies
+#### Install dependencies
+
 ```bash
 pip install -e .
 ```
@@ -114,7 +102,7 @@ You have now installed Fractal. You can now run a prover or verifier.
 
 
 # Why use a Homogeneous Inference Grid?
-Inspiration for Homogeneous Inference Grids came from Manifold Labs' TARGON and can be read about here: (https://github.com/manifold-inc/targon/tree/main). Fractal is adopting the framework of Provers and Verifiers and implementing text-to-video generation. Redundant verification networks are gamification-resistant-- a critical start to improving the resiliency of the Bittensor network. By solving gamification, these networks allow for optimizations to be built around real compute-- starting with edge-node inference. Fractal is working to develop and implement routing mechanisms that optimize inference response speeds. This will be critical to gaining end-user adoption in a scalable way on the Bittensor network. In a world where hundreds of apps are being built on Bittensor, and hundreds of thousands (or millions) of user requests are being sent to subnets, the network must minimize response times. 
+Inspiration for Homogeneous Inference Grids came from Manifold Labs' TARGON and can be read about here: (https://github.com/manifold-inc/fractal/tree/main). Fractal is adopting the framework of Provers and Verifiers and implementing text-to-video generation. Redundant verification networks are gamification-resistant-- a critical start to improving the resiliency of the Bittensor network. By solving gamification, these networks allow for optimizations to be built around real compute-- starting with edge-node inference. Fractal is working to develop and implement routing mechanisms that optimize inference response speeds. This will be critical to gaining end-user adoption in a scalable way on the Bittensor network. In a world where hundreds of apps are being built on Bittensor, and hundreds of thousands (or millions) of user requests are being sent to subnets, the network must minimize response times. 
 
 ## Role of a Prover
 A prover is a node that is responsible for generating a output from a query, private input, and a deterministic sampling params. 
@@ -135,22 +123,28 @@ An inference request is a request sent by a verifier to a prover. The inference 
 # How to Run Fractal
 
 ## Run a Prover
-### PM2
 
-<details>
-<summary> Run with PM2</summary>
+### Run with PM2
+
 
 ```bash
-cd neurons/prover
-pm2 start app.py --name prover -- --wallet.name WALLET_NAME --wallet.hotkey WALLET_HOTKEY --logging.debug --logging.trace --subtensor.chain_endpoint 0.0.0.0:9944
+pm2 start ecosystem.config.js
 ```
 
-replace the wallet name and wallet hotkey with your wallet name and wallet hotkey. You can also change the subtensor chain endpoint to your own chain endpoint if you perfer.
+Inside ecosystem.config.js you need to replace all entries like <YOUR_WALLET_HERE> with the correspoinding values. 
 
-</details>
+<SERVER_PORT_HERE> - replace this with the port your model server is running on (you can configure this in model/server.py)
+
+<YOUR_INTERNAL_PORT> - replace this with the internal port your server is running on 
+
+<YOUR_EXTERNAL_PORT> - replace this with the external port your server is running on (this entire flag is not needed if it's the same as internal port)
+
+<YOUR_WALLET_NAME> - replace this with the name of your coldkey
+
+<YOUR_WALLET_HOTKEY> - replace this with the name of your hotkey
 
 ### Options
-The add_prover_args function in the targon/utils/config.py file is used to add command-line arguments specific to the prover. Here are the options it provides:
+The add_prover_args function in the fractal/utils/config.py file is used to add command-line arguments specific to the prover. Here are the options it provides:
 
 1. --neuron.name: This is a string argument that specifies the name of the neuron. The default value is 'prover'.
 
@@ -158,51 +152,57 @@ The add_prover_args function in the targon/utils/config.py file is used to add c
 
 3. --blacklist.allow_non_registered: This is a boolean argument that, if set, allows provers to accept queries from non-registered entities. This is considered dangerous and its default value is False.
 
-4. --neuron.tgi_endpoint: This is a string argument that specifies the endpoint to use for the TGI client. The default value is "http://0.0.0.0:8080".
+4. --neuron.model_endpoint: This is a string argument that specifies the endpoint to use for the server that hosts your model. The default value is "http://0.0.0.0:5005".
 
 
 
 ## Run a Verifier
-- Redis
-- TGI Inference Node
-- Subtensor
-- Verifier (optional)
-### PM2
-<details>
-<summary>Run with PM2</summary
 
+### Run with PM2
 
-Install Redis:
-```
-sudo apt-get install redis-server
-```
-Generate Redis DB Password:
+#### Generate Redis DB Password:
+
 ```
 cd /fractal/
 ./scripts/generate_redis_password.sh
 ```
-Copy the Redis Password and add it to Redis conf:
+
+#### Copy the Redis Password and add it to Redis conf:
+
 ```
 vim /etc/redis/redis.conf
 ```
-Add this line:
-```
-requirepass:<YOUR_PASSWORD_HERE>
-```
 
+You need to uncomment out the line that begins with "requirepass" and set your password
+
+
+```
+requirepass: <YOUR_PASSWORD_HERE>
+```
 
 Run the following command to start the verifier with PM2:
-```bash
-cd neurons/verifier
 
-pm2 start app.py --name verifier -- --wallet.name WALLET_NAME --wallet.hotkey WALLET_HOTKEY --logging.debug --logging.trace --subtensor.chain_endpoint
-0.0.0.0:9944 --database.password YOUR_PASSWORD_HERE
+```bash
+pm2 start ecosystem.config.js
 ```
 
-### Options
-The add_verifier_args function in the targon/utils/config.py file is used to add command-line arguments specific to the verifier. Here are the options it provides:
 
-1. --neuron.sample_size: The number of provers to query in a single step. Default is 10.
+<SERVER_PORT_HERE> - replace this with the port your model server is running on (you can configure this in model/server.py)
+
+<YOUR_PASSWORD_HERE> - replace this with the password you generated (it must be the same as the one in /etc/redis/redis.conf)
+
+<YOUR_INTERNAL_PORT> - replace this with the internal port your server is running on 
+
+<YOUR_EXTERNAL_PORT> - replace this with the external port your server is running on (this entire flag is not needed if it's the same as internal port)
+
+<YOUR_WALLET_NAME> - replace this with the name of your coldkey
+
+<YOUR_WALLET_HOTKEY> - replace this with the name of your hotkey
+
+### Options
+The add_verifier_args function in the fractal/utils/config.py file is used to add command-line arguments specific to the verifier. Here are the options it provides:
+
+1. --neuron.sample_size: The number of provers to query in a single step. Default is 3. (Can cause problems if this is larger than the number of provers on the network)
 
 2. --neuron.disable_set_weights: A flag that disables setting weights. Default is False.
 
@@ -212,7 +212,7 @@ The add_verifier_args function in the targon/utils/config.py file is used to add
 
 5. --neuron.vpermit_tao_limit: The maximum number of TAO allowed to query a verifier with a vpermit. Default is 4096.
 
-6. --neuron.tgi_endpoint: The endpoint to use for the TGI client. Default is "http://0.0.0.0:8080".
+6. --neuron.model_endpoint: The endpoint to use for the server that hosts your model. Default is "http://0.0.0.0:5005".
 
 7. --database.host: The path to write debug logs to. Default is "127.0.0.1".
 
@@ -226,17 +226,12 @@ The add_verifier_args function in the targon/utils/config.py file is used to add
 
 These options can be used to customize the behavior of the verifier when it is run.
 
-Refer to the code here:
-
-
-replace the wallet name and wallet hotkey with your wallet name and wallet hotkey. You can also change the subtensor chain endpoint to your own chain endpoint if you perfer.
 
 # Reward System
 Inspired by [FileTAO](https://github.com/ifrit98/storage-subnet)'s reputation system, the reward system is based on the complete correct answer being responded consistently over time. If a ground truth hash and the prover output hash are equal, then the reward is 1. Performing these challenges and inference requests over time will result in a multiplication of your reward based off the tier.
 
 ## Tier System
 The tier system classifies miners into five distinct categories, each with specific requirements and request limits. These tiers are designed to reward miners based on their performance, reliability, and the total volume of requests they can fulfill.
-
 
 
 **1.) Challenger Tier** 
@@ -286,7 +281,6 @@ If you experience downtime as a challenger UID, you will be demoted down, howeve
 Statistics for inference_attempts/attempts, challenge_attempts/successes are reset every interval, while the total_successes are carried over for accurate tier computation. This "sliding window" of the previous 360 blocks of N successes vs M attempts effectively resets the N / Mratio. This facilitates a less punishing tier calculation for early failures that then have to be "outpaced", while simultaneously discouraging grandfathering in of older miners who were able to succeed early and cement their status in a higher tier. The net effect is greater mobility across the tiers, keeping the network competitive while incentivizing reliability and consistency.
 
 
-
 # How to Contribute
 
 ## Code Review
@@ -298,4 +292,3 @@ Where a patch set proposes to change the TARGON subnet, it must have been discus
 
 ## Finding Reviewers
 As most reviewers are themselves developers with their own projects, the review process can be quite lengthy, and some amount of patience is required. If you find that you've been waiting for a pull request to be given attention for several months, there may be a number of reasons for this, some of which you can do something about:
-# fractal

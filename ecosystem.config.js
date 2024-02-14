@@ -12,10 +12,16 @@ module.exports = {
             args: 'model/server.py',
         },
         {
-            name: 'neurons-verifier',
+            name: 'neurons-prover',
             script: 'python',
             interpreter: 'none',
-            args: 'neurons/verifier/app.py --subtensor.network test --neuron.model_endpoint "http://127.0.0.1:5004" --logging.debug --logging.trace --database.password YOUR_PASSWORD_HERE --disable_auto_update --netuid 79 --axon.port 5005 --axon.external_port 11333 --neuron.sample_size 3'
-        }
+            args: 'neurons/prover/app.py --subtensor.network finney --neuron.model_endpoint "http://127.0.0.1:<SERVER_PORT_HERE>" --logging.debug --logging.trace --netuid 5 --axon.port <YOUR_INTERNAL_PORT> --axon.external_port <YOUR_EXTERNAL_PORT> --wallet.name <YOUR_WALLET_NAME> --wallet.hotkey <YOUR_WALLET_HOTKEY>'
+        },
+        // {
+        //     name: 'neurons-verifier',
+        //         script: 'python',
+        //         interpreter: 'none',
+        //         args: 'neurons/verifier/app.py --subtensor.network finney --neuron.model_endpoint "http://127.0.0.1:<SERVER_PORT_HERE>" --logging.debug --logging.trace --database.password <YOUR_PASSWORD_HERE> --netuid 5 --axon.port <YOUR_INTERNAL_PORT> --axon.external_port <YOUR_EXTERNAL_PORT> --wallet.name <YOUR_WALLET_NAME> --wallet.hotkey <YOUR_WALLET_HOTKEY>''
+        // }
     ]
 };

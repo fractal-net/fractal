@@ -84,6 +84,7 @@ cd fractal
 
 ```bash
 pip install -e .
+pip install -r requirements.txt
 ```
 
 You have now installed Fractal. You can now run a prover or verifier.

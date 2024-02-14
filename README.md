@@ -40,10 +40,11 @@ The following table shows the VRAM, Storage, RAM, and CPU minimum requirements f
 In order to run Fractal, you need to install PM2 and the Fractal package. The following instructions apply only to Ubuntu OSes. For your specific OS, please refer to the official documentation.
 
 
-### Install Redis
+### Install Redis and server packages
 
 ```
 sudo apt-get update && sudo apt-get install redis-server
+sudo apt-get install libgl1-mesa-glx
 ```
 
 ### Install pm2

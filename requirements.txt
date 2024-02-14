@@ -14,3 +14,4 @@ uvicorn
 pydantic
 loguru
 numpy
+accelerate

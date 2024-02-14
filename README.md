@@ -36,7 +36,9 @@ The following table shows the VRAM, Storage, RAM, and CPU minimum requirements f
 
 # Required: RTX 3090
 | Role | VRAM | Storage | RAM | CPU |
+
 | Prover   | 24GB | 32GB | 8GB | 8 Cores  |
+
 | Verifier | 24GB | 64GB | 16GB | 8 Cores |
 
 # Roadmap

@@ -1,12 +1,10 @@
 # Fractal: Text-to-Video Generation Grid for Edge-Node Inference
 
-Fractal, taking inspiration from Manifold Labs' Deterministic Verification Network, is utilizing deterministic verification to create a grid of decentralized nodes to perform inference for video generation. By incentivizing users to host text-to-image models, this subnet allows Fractal to develop a mechanism that optimizes how end-user inference requests are handled to minimize latency. Additionally, the subnet is incredibly gamification-resistant, as a random seed is generated for each inference request, and if the Verifier and Prover seeds do not match, the Prover will be penalized.
-
+Fractal, taking inspiration from Manifold Labs' Deterministic Verification Network, is utilizing deterministic verification to create a grid of decentralized nodes to perform inference for video generation. By incentivizing users to host text-to-video models, this subnet allows Fractal to develop a mechanism that optimizes how end-user inference requests are handled to minimize latency. Additionally, the subnet is incredibly gamification-resistant, as a random seed is generated for each inference request, and if the Verifier and Prover seeds do not match, the Prover will be penalized.
 
 Currently supporting python>=3.9,<3.11.
 
 > Note: The storage subnet is in an alpha stage and is subject to rapid development.
-
 
 # Table of Contents
 1. [Compute Requirements](#compute-requirements)
@@ -35,11 +33,11 @@ The following table shows the VRAM, Storage, RAM, and CPU minimum requirements f
 
 
 # Required: RTX 3090
-| Role | VRAM | Storage | RAM | CPU |
+| Role | GPU | Storage | RAM | CPU |
 
-| Prover   | 24GB | 32GB | 8GB | 8 Cores  |
+| Prover   | 24GB  3090| 32GB | 8GB | 8 Cores  |
 
-| Verifier | 24GB | 64GB | 16GB | 8 Cores |
+| Verifier | 24GB  3090 | 64GB | 16GB | 8 Cores |
 
 # Roadmap
 
@@ -173,8 +171,27 @@ The add_prover_args function in the targon/utils/config.py file is used to add c
 <details>
 <summary>Run with PM2</summary
 
-Run the following command to start the verifier with PM2:
 
+Install Redis:
+```
+sudo apt-get install redis-server
+```
+Generate Redis DB Password:
+```
+cd /fractal/
+./scripts/generate_redis_password.sh
+```
+Copy the Redis Password and add it to Redis conf:
+```
+vim /etc/redis/redis.conf
+```
+Add this line:
+```
+requirepass:<YOUR_PASSWORD_HERE>
+```
+
+
+Run the following command to start the verifier with PM2:
 ```bash
 cd neurons/verifier
 

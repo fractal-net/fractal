@@ -4,27 +4,24 @@ Fractal, taking inspiration from Manifold Labs' Deterministic Verification Netwo
 
 Currently supporting python>=3.9,<3.11.
 
-> Note: The storage subnet is in an alpha stage and is subject to rapid development.
-
-# Table of Contents
-1. [Compute Requirements]
-1. [Installation]
-    - [Install Redis]
-    - [Install PM2]
-    - [Install Fractal]
-1. [What is a Homogeneous Inference Grid?]
-   - [Role of a Prover]
-   - [Role of a Verifier]
-1. [Features of Fractal]
-    - [Challenge Request]
-    - [Inference Request 
-1. [How to Run Fractal]
-    - [Run a Prover]
-    - [Run a Verifier]
-1. [Reward System]
-    - [Tier System]
-    - [Promotion/Relegation]
-1. [How to Contribute]
+1. [Compute Requirements](#compute-requirements)
+1. [Installation](#installation)
+    - [Install Redis](#install-redis)
+    - [Install PM2](#install-pm2)
+    - [Install Fractal](#install-fractal)
+1. [What is a Homogeneous Inference Grid?](#what-is-a-homogeneous-inference-grid)
+   - [Role of a Prover](#role-of-a-prover)
+   - [Role of a Verifier](#role-of-a-verifier)
+1. [Features of Fractal](#features-of-fractal)
+    - [Challenge Request](#challenge-request)
+    - [Inference Request](#inference-request)
+1. [How to Run Fractal](#how-to-run-fractal)
+    - [Run a Prover](#run-a-prover)
+    - [Run a Verifier](#run-a-verifier)
+1. [Reward System](#reward-system)
+    - [Tier System](#tier-system)
+    - [Promotion/Relegation](#promotionrelegation)
+1. [How to Contribute](#how-to-contribute)
 
 
 # Compute Requirements

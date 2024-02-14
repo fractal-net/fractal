@@ -15,3 +15,4 @@ pydantic
 loguru
 numpy
 accelerate
+opencv-python

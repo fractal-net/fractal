@@ -28,7 +28,7 @@ Currently supporting python>=3.9,<3.11.
 The following table shows the VRAM, Storage, RAM, and CPU minimum requirements for running a verifier or prover.
 
 
-## Required: RTX 3090
+## Required: RTX 3090 -- for verification purposes, if anything other than an RTX 3090 is used, the node will be scored poorly.
 | Role     | GPU        | Storage | RAM  | CPU     |
 |----------|------------|---------|------|---------|
 | Prover   | 24GB  3090 | 32GB    | 8GB  | 8 Cores |

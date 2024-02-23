@@ -168,13 +168,13 @@ vim /etc/redis/redis.conf
 You need to uncomment out the line that begins with "requirepass" and set your password
 
 ```
-requirepass: <YOUR_PASSWORD_HERE>
+requirepass <YOUR_PASSWORD_HERE>
 ```
 
 If you are running on runpod, you may also need to set the logfile line to a file that actually exists on your machine. 
 
 ```
-logfile: <PATH_TO_YOUR_LOGFILE>
+logfile <PATH_TO_YOUR_LOGFILE>
 ```
 
 Run the following command to start the verifier with PM2:

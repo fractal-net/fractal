@@ -269,7 +269,7 @@ async def compute_tier(stats_key: str, database: aioredis.Redis):
     """
     Asynchronously computes and updates the tier for a prover in the decentralized storage system.
     This function should be called periodically to ensure a prover's tier is up-to-date based on
-    their performance. It computes the tier based on the prover's success rate in challenges.
+    their performance. It computes the tier based on the prover's success rate in challenges.reward
     Args:
         stats_key (str): The key representing the prover's statistics in the database.
         database (redis.Redis): The Redis client instance for database operations.

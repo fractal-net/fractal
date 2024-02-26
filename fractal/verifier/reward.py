@@ -24,7 +24,7 @@ import bittensor as bt
 def hashing_function(input):
     if input is None:
         return '0000000000000000000000000000000000000000000000000000000000000000'
-    hashed_input = hashlib.sha256(input.encode()).hexdigest()
+    hashed_input = hashlib.sha256(input.encode('utf-8')).hexdigest()
     return hashed_input
 
 
@@ -42,7 +42,7 @@ def adjusted_sigmoid(x, steepness=1, shift=0):
     return 1 / (1 + np.exp(-steepness * (x - shift)))
 
 
-def adjusted_sigmoid_inverse(x, steepness=1, shift=0):
+def adjusted_sigmoid_inverse(x, steepness=0.1, shift=0):
     """
     Inverse of the adjusted sigmoid function.
 

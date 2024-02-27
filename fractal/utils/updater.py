@@ -40,15 +40,15 @@ def autoupdate(branch: str = "main"):
     try:
         # Fetching latest version from the main branch
         response = requests.get(
-            f"https://raw.githubusercontent.com/fractal-net/fractal/{branch}/VERSION",
+            "https://raw.githubusercontent.com/fractal-net/fractal/main/VERSION",
             headers={'Cache-Control': 'no-cache'}
         )
         response.raise_for_status()
-        latest_version = response.content.decode()
+        latest_version = response.content.decode().strip()  # Remove trailing newline characters
 
         # Checking if local version is older than the remote version
         if latest_version != fractal.__version__:
-            bt.logging.info("A newer version of Fractal is available. Updating...")
+            bt.logging.info(f"A newer version of Fractal ({latest_version}) is available. Updating...")
             base_path = os.path.abspath(__file__)
             while os.path.basename(base_path) != "fractal":
                 base_path = os.path.dirname(base_path)
@@ -65,11 +65,21 @@ def autoupdate(branch: str = "main"):
             # Performing git checkout to update to the latest version
             os.system(f"cd {base_path} && git fetch --tags && git checkout {tag_sha}")
 
+            # Checking if the update was successful
+            with open(os.path.join(base_path, "VERSION")) as f:
+                new_version = f.read().strip()
+
             # Restarting the application if the update was successful
-            if os.system(f"cd {base_path} && git rev-parse HEAD") == 0:
+            if new_version == latest_version:
                 bt.logging.info("Fractal updated successfully. Restarting...")
                 os.execv(sys.executable, [sys.executable] + sys.argv)
             else:
                 bt.logging.error("Update failed. Manual update required.")
+                
+            # Update local version number
+            fractal.__version__ = new_version
+        else:
+            bt.logging.info("Fractal is already up to date.")
     except Exception as e:
         bt.logging.error(f"Update check failed: {e}")
+

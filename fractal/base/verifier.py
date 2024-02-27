@@ -372,7 +372,6 @@ class BaseVerifierNeuron(BaseNeuron):
             self.config.neuron.full_path + "/state.pt",
         )
         if not self.config.disable_autoupdate:
-            print(self.config.disable_autoupdate)
             autoupdate("main")
 
     def load_state(self):

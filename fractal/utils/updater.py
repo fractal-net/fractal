@@ -23,6 +23,7 @@ import bittensor as bt
 import fractal
 
 def autoupdate(branch: str = "main"):
+    pass
     # '''
     # Automatically updates the Targon codebase to the latest version available.
 

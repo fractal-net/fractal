@@ -34,6 +34,10 @@ class Verifier(BaseVerifierNeuron):
 
     def __init__(self, config=None):
         print("testing autoupdate")
+        print("testing autoupdate")
+        print("testing autoupdate")
+        print("testing autoupdate")
+
         super(Verifier, self).__init__(config=config)
 
         bt.logging.info("load_state()")

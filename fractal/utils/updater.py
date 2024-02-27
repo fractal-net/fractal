@@ -45,27 +45,28 @@ def autoupdate(branch: str = "main"):
         )
         response.raise_for_status()
         latest_version = response.content.decode()
-        
-        latest_version_tuple = tuple(map(int, latest_version.split(".")))
-        local_version_tuple = tuple(map(int, fractal.__version__.split(".")))
 
         # Checking if local version is older than the remote version
-        if latest_version_tuple > local_version_tuple:
+        if latest_version != fractal.__version__:
             bt.logging.info("A newer version of Fractal is available. Updating...")
             base_path = os.path.abspath(__file__)
             while os.path.basename(base_path) != "fractal":
                 base_path = os.path.dirname(base_path)
             base_path = os.path.dirname(base_path)
 
-            # Performing git pull to update to the latest version
-            os.system(f"cd {base_path} && git pull")
+            # Fetching the tag corresponding to the latest version
+            tag_response = requests.get(
+                f"https://api.github.com/repos/fractal-net/fractal/git/refs/tags/{latest_version}"
+            )
+            tag_response.raise_for_status()
+            tag_info = tag_response.json()
+            tag_sha = tag_info["object"]["sha"]
 
-            # Checking the VERSION file in the main branch again after the update
-            with open(os.path.join(base_path, "VERSION")) as f:
-                new_version = f.read().strip()
+            # Performing git checkout to update to the latest version
+            os.system(f"cd {base_path} && git fetch --tags && git checkout {tag_sha}")
 
             # Restarting the application if the update was successful
-            if new_version == latest_version:
+            if os.system(f"cd {base_path} && git rev-parse HEAD") == 0:
                 bt.logging.info("Fractal updated successfully. Restarting...")
                 os.execv(sys.executable, [sys.executable] + sys.argv)
             else:

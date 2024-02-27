@@ -33,10 +33,9 @@ class Verifier(BaseVerifierNeuron):
     """
 
     def __init__(self, config=None):
-        print("testing autoupdate")
-        print("testing autoupdate")
-        print("testing autoupdate")
-        print("testing autoupdate")
+        print("testing autoupdate part 2")
+        print("testing autoupdate part 2")
+        print("testing autoupdate part 2")
 
         super(Verifier, self).__init__(config=config)
 

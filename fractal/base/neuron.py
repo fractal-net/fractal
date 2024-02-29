@@ -71,7 +71,7 @@ class BaseNeuron(ABC):
         bt.logging(config=self.config, logging_dir=self.config.full_path)
 
         if not self.config.disable_autoupdate:
-            if not os.getenv('SKIP_AUTOUPDATE'):
+            # if not os.getenv('SKIP_AUTOUPDATE'):
                 autoupdate("main")
 
         # Log the configuration for reference.

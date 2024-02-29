@@ -17,6 +17,7 @@
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
+import os
 import time
 import torch
 import asyncio
@@ -247,7 +248,8 @@ class BaseProverNeuron(BaseNeuron):
 
     def save_state(self):
         if not self.config.disable_autoupdate:
-            autoupdate("main")
+            if not os.getenv('SKIP_AUTOUPDATE'):
+                autoupdate("main")
         return True
     
     def load_state(self):

@@ -17,6 +17,7 @@
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
+import os
 import sys
 import copy
 import torch
@@ -70,7 +71,8 @@ class BaseNeuron(ABC):
         bt.logging(config=self.config, logging_dir=self.config.full_path)
 
         if not self.config.disable_autoupdate:
-            autoupdate("main")
+            if not os.getenv('SKIP_AUTOUPDATE'):
+                autoupdate("main")
 
         # Log the configuration for reference.
         bt.logging.info(self.config)

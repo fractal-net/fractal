@@ -34,6 +34,7 @@ class Verifier(BaseVerifierNeuron):
 
     def __init__(self, config=None):
         super(Verifier, self).__init__(config=config)
+        print("test test test")
 
         bt.logging.info("load_state()")
         if not self.config.mock:

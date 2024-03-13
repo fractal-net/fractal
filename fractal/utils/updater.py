@@ -57,7 +57,7 @@ def autoupdate(self, branch: str = "main"):
             while os.path.basename(base_path) != "fractal":
                 base_path = os.path.dirname(base_path)
             base_path = os.path.dirname(base_path)
-            os.system(f"cd {base_path} && git pull")
+            os.system(f"cd {base_path} && git checkout main && git pull")
 
             with open(os.path.join(base_path, "VERSION")) as f:
                 new_version = f.read().strip()

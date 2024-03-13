@@ -70,8 +70,6 @@ class BaseNeuron(ABC):
         # Set up logging with the provided configuration and directory.
         bt.logging(config=self.config, logging_dir=self.config.full_path)
 
-        if not self.config.disable_autoupdate:
-            autoupdate(self.config.autoupdate.branch)
 
         # Log the configuration for reference.
         bt.logging.info(self.config)
@@ -79,6 +77,9 @@ class BaseNeuron(ABC):
         self.device = torch.device(self.config.neuron.device)
 
         self.restart_required = False
+
+        if not self.config.disable_autoupdate:
+            autoupdate(self.config.autoupdate.branch)
 
 
         # Build Bittensor objects

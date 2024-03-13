@@ -33,7 +33,6 @@ from substrateinterface.base import SubstrateInterface
 
 from fractal.mock import MockDendrite
 from fractal.base.neuron import BaseNeuron
-from fractal.utils.updater import autoupdate
 from fractal.utils.config import add_verifier_args
 
 

@@ -28,7 +28,6 @@ from abc import ABC, abstractmethod
 
 # Sync calls set weights and also resyncs the metagraph.
 import fractal
-from fractal.utils.updater import autoupdate
 from fractal.utils.misc import ttl_get_block
 from fractal import __spec_version__ as spec_version
 from fractal.mock import MockSubtensor, MockMetagraph

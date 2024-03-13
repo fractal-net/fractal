@@ -27,7 +27,6 @@ import threading
 import traceback
 import bittensor as bt
 from fractal.base.neuron import BaseNeuron
-from fractal.utils.updater import autoupdate
 from fractal.utils.config import add_prover_args
 from bittensor.axon import FastAPIThreadedServer
 

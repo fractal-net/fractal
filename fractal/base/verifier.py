@@ -373,7 +373,7 @@ class BaseVerifierNeuron(BaseNeuron):
             self.config.neuron.full_path + "/state.pt",
         )
         if not self.config.disable_autoupdate:
-            autoupdate(self.config.autoupdate.branch)
+            self.autoupdate(self.config.autoupdate.branch)
 
     def load_state(self):
         """Loads the state of the verifier from a file."""

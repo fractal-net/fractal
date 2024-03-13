@@ -114,6 +114,13 @@ def add_args(cls, parser):
         default=False,
     )
 
+    parser.add_argument(
+        '--autoupdate.branch',
+        type=str,
+        help="The branch to auto-update from.",
+        default="main",
+    )
+
 
 def add_prover_args(cls, parser):
     """Add prover specific arguments to the parser."""

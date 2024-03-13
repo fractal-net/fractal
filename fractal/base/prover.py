@@ -227,8 +227,7 @@ class BaseProverNeuron(BaseNeuron):
 
     def save_state(self):
         if not self.config.disable_autoupdate:
-            # if not os.getenv('SKIP_AUTOUPDATE'):
-                autoupdate("main")
+            autoupdate(self.config.autoupdate.branch)
         return True
     
     def load_state(self):

@@ -77,6 +77,7 @@ class BaseNeuron(ABC):
         bt.logging.info(self.config)
         
         self.device = torch.device(self.config.neuron.device)
+
         self.restart_required = False
 
 

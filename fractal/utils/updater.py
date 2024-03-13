@@ -17,13 +17,11 @@
 # DEALINGS IN THE SOFTWARE.
 
 import os
-import sys
 import requests
 import bittensor as bt
 import fractal
 
 def autoupdate(self, branch: str = "main"):
-    pass
     '''
     Automatically updates the Fractal codebase to the latest version available.
 

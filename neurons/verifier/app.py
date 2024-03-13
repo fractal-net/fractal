@@ -18,6 +18,8 @@
 
 
 import time
+import sys 
+import os
 import bittensor as bt
 
 
@@ -34,10 +36,6 @@ class Verifier(BaseVerifierNeuron):
 
     def __init__(self, config=None):
         super(Verifier, self).__init__(config=config)
-        print("test test test")
-        print("test test test")
-        print("test test test")
-        print("test test test")
 
         bt.logging.info("load_state()")
         if not self.config.mock:
@@ -103,5 +101,7 @@ class Verifier(BaseVerifierNeuron):
 if __name__ == "__main__":
     with Verifier() as verifier:
         while True:
+            if verifier.restart_required:
+                os.execv(sys.executable, [sys.executable] + sys.argv)
             bt.logging.info("Verifier running...", time.time())
             time.sleep(5)

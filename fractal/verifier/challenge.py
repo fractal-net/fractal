@@ -105,17 +105,6 @@ async def handle_challenge( self, uid: int, private_input: typing.Dict, ground_t
             sampling_params=sampling_params,
         )
 
-        serialized_synapse = synapse.json()
-        deserialized_synapse = protocol.Challenge.parse_raw(serialized_synapse)
-        print(deserialized_synapse)
-        print(deserialized_synapse)
-        print(deserialized_synapse)
-        print("===================")
-        print(synapse)
-        print(synapse)
-        print(synapse)
-
-
 
         response = await self.client.generate(prompt, sampling_params.seed)
         await self.client.close_session()

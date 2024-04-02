@@ -22,6 +22,7 @@ import random
 import typing
 import asyncio
 import httpx
+from requests.auth import HTTPBasicAuth
 import bittensor as bt
 
 from fractal import protocol
@@ -157,14 +158,9 @@ async def challenge_data( self ):
     )
 
     url = self.config.neuron.challenge_url
-
-    async with httpx.AsyncClient() as client:
-        response = await client.get(url)
-        if response.status_code == 200:
-            private_input = response.json()
-        else:
-            private_input = None
-            raise ValueError("Failed to fetch or parse JSON from the URL")
+    hotkey = self.wallet.hotkey.ss58_address
+    signature = f"0x{self.wallet.hotkey.sign(hotkey).hex()}"
+    private_input = httpx.get(url, auth=HTTPBasicAuth(hotkey, signature)).json()
 
     prompt = private_input["query"]
     seed = random.randint(1, 2**32 - 1)

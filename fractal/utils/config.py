@@ -313,6 +313,13 @@ def add_verifier_args(cls, parser):
         default=100,
     )
 
+    parser.add_argument(
+        "--neuron.enable_inference", 
+        type=bool, 
+        help="If set, the verifier will run inference.",
+        dest="enable_inference",
+        default=True,
+    )
 
 def config(cls):
     """

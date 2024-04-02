@@ -118,6 +118,14 @@ class BaseVerifierNeuron(BaseNeuron):
         bt.logging.info("serving ip to chain...")
         try:
             self.axon = bt.axon(wallet=self.wallet, config=self.config)
+            if self.config.enable_inference: 
+                self.axon.attach(
+                        forward_fn=self.prompt,
+                        blacklist_fn=self.prompt_blacklist,
+                        priority_fn=self.prompt_priority,
+                        )
+
+
 
             try:
                 self.subtensor.serve_axon(
@@ -138,6 +146,15 @@ class BaseVerifierNeuron(BaseNeuron):
             for _ in range(self.config.neuron.num_concurrent_forwards)
         ]
         await asyncio.gather(*coroutines)
+
+    async def prompt(self):
+        pass
+
+    async def prompt_blacklist(self):
+        pass
+
+    async def prompt_priority(self):
+        pass
 
     def run(self):
         """

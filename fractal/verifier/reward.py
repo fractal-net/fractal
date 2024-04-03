@@ -157,12 +157,12 @@ def scale_rewards(self, uids, responses, rewards, timeout: float, mode: str):
         List[float]: A list of scaled rewards for each axon.
     """
 
-    max_time = max(
-        [
-            response.dendrite.process_time for response in responses
-            if response.dendrite.process_time is not None
-        ] or [1] # nobody responded successfully
-    )
+    # max_time = max(
+    #     [
+    #         response.dendrite.process_time for response in responses
+    #         if response.dendrite.process_time is not None
+    #     ] or [1] # nobody responded successfully
+    # )
 
     sorted_axon_times = get_sorted_response_times(self, uids, responses, timeout=timeout)
 

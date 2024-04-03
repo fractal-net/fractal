@@ -200,6 +200,7 @@ async def challenge_data( self ):
             success=verified,
             task_type="challenge",
             database=self.database,
+            current_block=self.block,
         )
 
         # Apply reward for this challenge

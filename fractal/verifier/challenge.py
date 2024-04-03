@@ -26,6 +26,7 @@ import bittensor as bt
 
 from fractal import protocol
 from fractal.verifier.event import EventSchema
+from requests.auth import HTTPBasicAuth
 from fractal.constants import CHALLENGE_FAILURE_REWARD
 from fractal.utils.uids import get_random_uids
 from fractal.verifier.bonding import update_statistics, get_tier_factor
@@ -104,23 +105,11 @@ async def handle_challenge( self, uid: int, private_input: typing.Dict, ground_t
             sampling_params=sampling_params,
         )
 
-        serialized_synapse = synapse.json()
-        deserialized_synapse = protocol.Challenge.parse_raw(serialized_synapse)
-        print(deserialized_synapse)
-        print(deserialized_synapse)
-        print(deserialized_synapse)
-        print("===================")
-        print(synapse)
-        print(synapse)
-        print(synapse)
-
-
 
         response = await self.client.generate(prompt, sampling_params.seed)
         await self.client.close_session()
 
         synapse.completion = response
-        
 
         verified = verify( self, response, ground_truth_hash )
 
@@ -158,13 +147,12 @@ async def challenge_data( self ):
 
     url = self.config.neuron.challenge_url
 
-    async with httpx.AsyncClient() as client:
-        response = await client.get(url)
-        if response.status_code == 200:
-            private_input = response.json()
-        else:
-            private_input = None
-            raise ValueError("Failed to fetch or parse JSON from the URL")
+    
+    hotkey = self.wallet.hotkey.ss58_address 
+    signature = f"0x{self.wallet.hotkey.sign(hotkey).hex()}"
+
+    private_input = httpx.get(url, auth=HTTPBasicAuth(hotkey, signature)).json()
+    bt.logging.info(f"Challenge data: {private_input}")
 
     prompt = private_input["query"]
     seed = random.randint(1, 2**32 - 1)
@@ -200,9 +188,9 @@ async def challenge_data( self ):
 
     remove_reward_idxs = []
     for i, (verified, (response, uid)) in enumerate(responses):
-        # bt.logging.trace(
-        #     f"Challenge iteration {i} uid {uid} response {str(response.completion if not self.config.mock else response)}"
-        # )
+        bt.logging.trace(
+            f"Challenge iteration {i} uid {uid} response {str(response.completion if not self.config.mock else response)}"
+        )
 
         hotkey = self.metagraph.hotkeys[uid]
 

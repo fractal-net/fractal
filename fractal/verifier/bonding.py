@@ -22,111 +22,8 @@ import bittensor as bt
 
 from redis import asyncio as aioredis
 
+from fractal.constants import *
 
-REQUEST_LIMIT_CHALLENGER = 100_000 # 100k every 360 blocks
-REQUEST_LIMIT_GRANDMASTER = 25_000 # 10k every 360 blocks
-REQUEST_LIMIT_GOLD = 10_000 # 10k every 360 blocks
-REQUEST_LIMIT_GOLD = 10_000 # 10k every 360 blocks
-REQUEST_LIMIT_SILVER = 5_000 # 5k every 360 blocks
-REQUEST_LIMIT_BRONZE = 500 # 1k every 360 blocks
-
-
-COSINE_SIMILARITY_THRESHOLD_CHALLENGER = 0.98
-COSINE_SIMILARITY_THRESHOLD_GRANDMASTER = 0.95
-COSINE_SIMILARITY_THRESHOLD_GOLD = 0.90
-COSINE_SIMILARITY_THRESHOLD_SILVER = 0.85
-COSINE_SIMILARITY_THRESHOLD_BRONZE = 0.80
-
-# Requirements for each tier. These must be maintained for a prover to remain in that tier.
-CHALLENGER_INFERENCE_SUCCESS_RATE = 0.999  # 1/1000 chance of failure
-CHALLENGER_CHALLENGE_SUCCESS_RATE = 0.999  # 1/1000 chance of failure
-GRANDMASTER_INFERENCE_SUCCESS_RATE = 0.989  # 1/100 chance of failure
-GRANDMASTER_CHALLENGE_SUCCESS_RATE = 0.989  # 1/100 chance of failure
-GOLD_INFERENCE_SUCCESS_RATE = 0.949  # 1/50 chance of failure
-GOLD_CHALLENGE_SUCCESS_RATE = 0.949  # 1/50 chance of failure
-SILVER_INFERENCE_SUCCESS_RATE = 0.949  # 1/20 chance of failure
-SILVER_CHALLENGE_SUCCESS_RATE = 0.949  # 1/20 chance of failure
-
-CHALLENGER_TIER_REWARD_FACTOR = 1.0  # Get 100% rewards
-GRANDMASTER_TIER_REWARD_FACTOR = 0.888  # Get 88.8% rewards
-GOLD_TIER_REWARD_FACTOR = 0.777  # Get 77.7% rewards
-SILVER_TIER_REWARD_FACTOR = 0.555  # Get 55.5% rewards
-BRONZE_TIER_REWARD_FACTOR = 0.444  # Get 44.4% rewards
-
-CHALLENGER_TIER_TOTAL_SUCCESSES = 4_000
-GRANDMASTER_TIER_TOTAL_SUCCESSES = 2_000
-GOLD_TIER_TOTAL_SUCCESSES = 500  # 50
-SILVER_TIER_TOTAL_SUCCESSES = 250
-
-TIER_CONFIG = {
-    "Bronze": {
-        "success_rate": 0.70, 
-        "request_limit": 500, 
-        "reward_factor": 0.444,
-        "similarity_threshold": 0.70
-    },
-    "Silver": {
-        "success_rate": 0.72, 
-        "request_limit": 1000, 
-        "reward_factor": 0.555,
-        "similarity_threshold": 0.72
-    },
-    "Gold": {
-        "success_rate": 0.74, 
-        "request_limit": 5000, 
-        "reward_factor": 0.666,
-        "similarity_threshold": 0.74
-    },
-    "Platinum": {
-        "success_rate": 0.76, 
-        "request_limit": 7500, 
-        "reward_factor": 0.777,
-        "similarity_threshold": 0.76
-    },
-    "Diamond": {
-        "success_rate": 0.78, 
-        "request_limit": 10000, 
-        "reward_factor": 0.888,
-        "similarity_threshold": 0.78
-    },
-    "Emerald": {
-        "success_rate": 0.80, 
-        "request_limit": 12500, 
-        "reward_factor": 0.900,
-        "similarity_threshold": 0.80
-    },
-    "Ruby": {
-        "success_rate": 0.82, 
-        "request_limit": 15000, 
-        "reward_factor": 0.920,
-        "similarity_threshold": 0.82
-    },
-    "Jade": {
-        "success_rate": 0.84, 
-        "request_limit": 17500, 
-        "reward_factor": 0.940,
-        "similarity_threshold": 0.84
-    },
-    "Master": {
-        "success_rate": 0.88, 
-        "request_limit": 20000, 
-        "reward_factor": 0.960,
-        "similarity_threshold": 0.88
-    },
-    "Grandmaster": 
-    {
-        "success_rate": 0.92, 
-        "request_limit": 22500, 
-        "reward_factor": 0.980,
-        "similarity_threshold": 0.92
-    },
-    "Challenger": {
-        "success_rate": 0.98, 
-        "request_limit": 25000, 
-        "reward_factor": 1.0,
-        "similarity_threshold": 0.95
-    },
-}
 
 
 
@@ -169,7 +66,7 @@ async def prover_is_registered(ss58_address: str, database: aioredis.Redis):
     return await database.exists(f"stats:{ss58_address}")
 
 
-async def register_prover(ss58_address: str, database: aioredis.Redis):
+async def register_prover(ss58_address: str, database: aioredis.Redis, current_block: int):
     """
     Registers a new prover in the decentralized storage system, initializing their statistics.
     This function creates a new entry in the database for a prover with default values,
@@ -189,12 +86,13 @@ async def register_prover(ss58_address: str, database: aioredis.Redis):
             "total_successes": 0,
             "tier": "Bronze",
             "request_limit": TIER_CONFIG["Bronze"]["request_limit"],
+            "last_interval_block": current_block, 
         },
     )
 
 
 async def update_statistics(
-    ss58_address: str, success: bool, task_type: str, database: aioredis.Redis
+    ss58_address: str, success: bool, task_type: str, database: aioredis.Redis, current_block: int
 ):
     """
     Updates the statistics of a prover in the decentralized storage system.
@@ -210,7 +108,7 @@ async def update_statistics(
     # Check and see if this prover is registered.
     if not await prover_is_registered(ss58_address, database):
         bt.logging.debug(f"Registering new prover {ss58_address}...")
-        await register_prover(ss58_address, database)
+        await register_prover(ss58_address, database, current_block)
 
     # Update statistics in the stats hash
     stats_key = f"stats:{ss58_address}"
@@ -265,11 +163,11 @@ async def get_similarity_threshold(ss58_address: str, database: aioredis.Redis):
 
     return similarity_threshold
 
-async def compute_tier(stats_key: str, database: aioredis.Redis):
+async def compute_tier(stats_key: str, database: aioredis.Redis, current_block: int):
     """
     Asynchronously computes and updates the tier for a prover in the decentralized storage system.
     This function should be called periodically to ensure a prover's tier is up-to-date based on
-    their performance. It computes the tier based on the prover's success rate in challenges.reward
+    their performance. It computes the tier based on the prover's success rate in challenges.
     Args:
         stats_key (str): The key representing the prover's statistics in the database.
         database (redis.Redis): The Redis client instance for database operations.
@@ -282,6 +180,13 @@ async def compute_tier(stats_key: str, database: aioredis.Redis):
     challenge_successes = int(await database.hget(stats_key, "challenge_successes") or 0)
     challenge_attempts = int(await database.hget(stats_key, "challenge_attempts") or 0)
     challenge_success_rate = challenge_successes / challenge_attempts if challenge_attempts > 0 else 0
+    total_successes = int(await database.hget(stats_key, "total_successes") or 0)
+    last_interval_block = int(await database.hget(stats_key, "last_interval_block") or 0)
+    
+    if last_interval_block == 0:
+        # set the last interval block to the current block
+        bt.logging.info(f"Setting last interval block to {current_block}")
+        await database.hset(stats_key, "last_interval_block", current_block)
 
     current_tier_bytes = await database.hget(stats_key, "tier")
     if current_tier_bytes is None:
@@ -295,14 +200,14 @@ async def compute_tier(stats_key: str, database: aioredis.Redis):
 
     # Check for promotion
     for tier_name, tier_info in list(TIER_CONFIG.items())[current_tier_index+1:]:
-        if challenge_success_rate > tier_info["success_rate"]:
+        if challenge_success_rate > tier_info["success_rate"] and total_successes > tier_info["request_limit"]:
             new_tier_index = list(TIER_CONFIG.keys()).index(tier_name)
             break
 
     # Check for demotion, if no promotion is possible
     if new_tier_index == current_tier_index:
         for tier_name, tier_info in reversed(list(TIER_CONFIG.items())[:current_tier_index]):
-            if challenge_success_rate <= tier_info["success_rate"]:
+            if challenge_success_rate <= tier_info["success_rate"] and total_successes <= tier_info["request_limit"]:
                 new_tier_index = list(TIER_CONFIG.keys()).index(tier_name)
                 break
 
@@ -312,18 +217,45 @@ async def compute_tier(stats_key: str, database: aioredis.Redis):
         await database.hset(stats_key, "tier", new_tier_name)
         await database.hset(stats_key, "request_limit", TIER_CONFIG[new_tier_name]["request_limit"])
 
-async def compute_all_tiers(database: aioredis.Redis):
+    if current_block - last_interval_block >= EPOCH_LENGTH:
+        if new_tier_index < 2:
+             # set the tier to bronze
+            await database.hmset(
+                f"stats:{stats_key}",
+                {
+                    "inference_attempts": 0,
+                    "inference_successes": 0,
+                    "challenge_successes": 0,
+                    "challenge_attempts": 0,
+                    "total_successes": 0,
+                    "tier": "Bronze",
+                    "request_limit": TIER_CONFIG["Bronze"]["request_limit"],
+                    "last_interval_block": current_block, 
+                },
+            )
+        else:
+            new_tier_name = list(TIER_CONFIG.keys())[new_tier_index]
+            await database.hset(stats_key, "tier", new_tier_name)
+            await database.hset(stats_key, "request_limit", TIER_CONFIG[new_tier_name]["request_limit"])
+            await database.hset(stats_key, "last_interval_block", current_block)
+            await database.hset(stats_key, "total_successes", TIER_CONFIG[new_tier_name]["request_limit"])
+
+        # set the total_successes to 
+async def compute_all_tiers(database: aioredis.Redis, current_block: int):
     """
     Asynchronously computes and updates the tiers for all provers in the decentralized storage system.
     This function should be called periodically to ensure provers' tiers are up-to-date based on
     their performance. It iterates over all provers and calls `compute_tier` for each one.
     """
     provers = [prover async for prover in database.scan_iter("stats:*")]
-    tasks = [compute_tier(prover, database) for prover in provers]
+    tasks = [compute_tier(prover, database, current_block) for prover in provers]
     await asyncio.gather(*tasks)
 
     bt.logging.info(f"Resetting statistics for all hotkeys...")
     await rollover_request_stats(database)
+    
+
+
 async def get_uid_tier_mapping(database: aioredis.Redis):
     """
     Retrieves a mapping of UIDs to their respective tiers.
@@ -368,18 +300,21 @@ async def get_tier_factor(ss58_address: str, database: aioredis.Redis):
     is eligible to receive based on their tier.
     Args:
         ss58_address (str): The unique address (hotkey) of the prover.
-        database (redis.Redis): The Redis client instance for database operations.
+        database (aioredis.Redis): The Redis client instance for database operations.
     Returns:
         float: The reward factor corresponding to the prover's tier.
     """
-    tier = await database.hget(f"stats:{ss58_address}", "tier")
-    if tier == b"Challenger":
-        return CHALLENGER_TIER_REWARD_FACTOR
-    elif tier == b"Grandmaster":
-        return GRANDMASTER_TIER_REWARD_FACTOR
-    elif tier == b"Gold":
-        return GOLD_TIER_REWARD_FACTOR
-    elif tier == b"Silver":
-        return SILVER_TIER_REWARD_FACTOR
-    else:
+    # Retrieve the tier from the database
+    tier_bytes = await database.hget(f"stats:{ss58_address}", "tier")
+    if tier_bytes is None:
+        # If the tier is not found, return a default reward factor
         return BRONZE_TIER_REWARD_FACTOR
+
+    # Decode the tier value from bytes to string
+    tier = tier_bytes.decode()
+
+    # Use the tier to get the reward factor from TIER_CONFIG
+    # If the tier is not found in TIER_CONFIG, return a default reward factor
+    reward_factor = TIER_CONFIG.get(tier, {}).get("reward_factor", 0.444)
+
+    return reward_factor

@@ -42,7 +42,7 @@ def adjusted_sigmoid(x, steepness=1, shift=0):
     return 1 / (1 + np.exp(-steepness * (x - shift)))
 
 
-def adjusted_sigmoid_inverse(x, steepness=0.1, shift=0):
+def adjusted_sigmoid_inverse(x, steepness=1, shift=0):
     """
     Inverse of the adjusted sigmoid function.
 
@@ -64,8 +64,8 @@ def calculate_sigmoid_params(timeout):
     - tuple: A tuple containing the 'steepness' and 'shift' values for the current timeout.
     """
     base_timeout = 1
-    base_steepness = 5
-    base_shift = 0.6
+    base_steepness = 7
+    base_shift = 0.3
 
     # Calculate the ratio of the current timeout to the base timeout
     ratio = timeout / base_timeout
@@ -97,6 +97,7 @@ def get_sorted_response_times(self, uids, responses, timeout: float):
     """
     if self.config.mock:
         return [(uid, 0.5, timeout) for uid in uids]
+
     axon_times = [
         (
             uids[idx],
@@ -155,6 +156,14 @@ def scale_rewards(self, uids, responses, rewards, timeout: float, mode: str):
     Returns:
         List[float]: A list of scaled rewards for each axon.
     """
+
+    max_time = max(
+        [
+            response.dendrite.process_time for response in responses
+            if response.dendrite.process_time is not None
+        ] or [1] # nobody responded successfully
+    )
+
     sorted_axon_times = get_sorted_response_times(self, uids, responses, timeout=timeout)
 
     # Extract only the process times
@@ -172,6 +181,7 @@ def scale_rewards(self, uids, responses, rewards, timeout: float, mode: str):
         uid: normalized_time
         for (uid, _, _), normalized_time in zip(sorted_axon_times, normalized_times)
     }
+
     bt.logging.debug(
         f"scale_rewards_by_{mode}() uid_to_normalized_time: {uid_to_normalized_time}"
     )
@@ -220,5 +230,8 @@ def apply_reward_scores(
     self.scores: torch.FloatTensor = alpha * scattered_rewards + (
         1 - alpha
     ) * self.scores.to(self.device)
+
+    self.scores = (self.scores - self.config.neuron.decay_alpha).clamp(min=0)
+
     bt.logging.trace(f"Updated moving avg scores: {self.scores}")
 

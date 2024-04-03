@@ -23,7 +23,6 @@ import argparse
 import bittensor as bt
 from loguru import logger
 
-#TODO: enable 4bit and 8bit precision llms via config
 
 def check_config(cls, config: "bt.Config"):
     r"""Checks/validates the config namespace object."""
@@ -183,6 +182,13 @@ def add_verifier_args(cls, parser):
         help="The timeout for each forward call in seconds.",
         default=60,
     )
+
+    parser.add_argument(
+            "--neuron.decay_alpha",
+            type=float,
+            help="The decay alpha for the moving average.",
+            default=0.001,
+        )
 
     parser.add_argument(
         "--neuron.max_tokens",

@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='fractal',  # Replace with your package's name
-    version='1.0.0',  # Replace with your package's version
+    version='0.2.1',  # Replace with your package's version
     author='fractal-net',  # Replace with your name
     author_email='',  # Replace with your email
     description='The code for SNX on bittensor',  # Replace with a brief description of your package

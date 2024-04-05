@@ -17,7 +17,6 @@
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-import os
 import sys
 import copy
 import torch
@@ -27,7 +26,7 @@ import argparse
 import threading
 import bittensor as bt
 
-from typing import List
+from typing import List, Tuple
 from traceback import print_exception
 from substrateinterface.base import SubstrateInterface
 
@@ -125,6 +124,12 @@ class BaseVerifierNeuron(BaseNeuron):
                     blacklist_fn=self.prompt_blacklist,
                     priority_fn=self.prompt_priority,
                 )
+                print("successfully attached axon")
+                print("successfully attached axon")
+                print("successfully attached axon")
+                print("successfully attached axon")
+                print("successfully attached axon")
+                self.axon.start()
             try:
                 self.subtensor.serve_axon(
                     netuid=self.config.netuid,
@@ -147,22 +152,20 @@ class BaseVerifierNeuron(BaseNeuron):
 
     async def prompt(self, synapse: protocol.Inference) -> protocol.Inference:
         bt.logging.debug(f"store_user_data() {synapse.axon.dict()}")
-        query = synapse.query
-
+        # query = synapse.query
         # Forward the query to the network 
-
-        response = ""
+        response = "moose"
 
         # Complete the synapse with the response.
         synapse.completion = response
 
         return synapse
 
-    async def prompt_blacklist(self):
-        pass
+    async def prompt_blacklist(self, synapse: protocol.Inference) -> Tuple[bool, str]:
+        return False, "Open access: WARNING all whitelisted"
 
-    async def prompt_priority(self):
-        pass
+    async def prompt_priority(self, synapse: protocol.Inference) -> float:
+        return 1.0
 
     def run(self):
         """

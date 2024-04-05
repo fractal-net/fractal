@@ -93,19 +93,17 @@ async def handle_challenge( self, uid: int, private_input: typing.Dict, ground_t
         
         verified = verify( self, output, ground_truth_hash )
 
-        output_dict = (
+        output_tup = (
             response,
             uid
         )
-        return verified, output_dict
+        return verified, output_tup
     
     else:
-
         synapse = protocol.Challenge(
             query = private_input["query"],
             sampling_params=sampling_params,
         )
-
 
         response = await self.client.generate(prompt, sampling_params.seed)
         await self.client.close_session()
@@ -114,11 +112,11 @@ async def handle_challenge( self, uid: int, private_input: typing.Dict, ground_t
 
         verified = verify( self, response, ground_truth_hash )
 
-        output_dict = (
+        output_tup = (
             synapse,
             uid
         )
-        return verified, output_dict
+        return verified, output_tup
 
 
 def generate_challenge( self ):
@@ -245,6 +243,7 @@ async def challenge_data( self ):
     bt.logging.debug(f"challenge_data() kept rewards: {rewards} | uids {uids}")
 
     bt.logging.trace("Applying challenge rewards")
+
     apply_reward_scores(
         self,
         uids,

@@ -34,6 +34,7 @@ from substrateinterface.base import SubstrateInterface
 from fractal.mock import MockDendrite
 from fractal.base.neuron import BaseNeuron
 from fractal.utils.config import add_verifier_args
+from fractal import protocol
 
 
 class BaseVerifierNeuron(BaseNeuron):
@@ -120,13 +121,10 @@ class BaseVerifierNeuron(BaseNeuron):
             self.axon = bt.axon(wallet=self.wallet, config=self.config)
             if self.config.enable_inference: 
                 self.axon.attach(
-                        forward_fn=self.prompt,
-                        blacklist_fn=self.prompt_blacklist,
-                        priority_fn=self.prompt_priority,
-                        )
-
-
-
+                    forward_fn=self.prompt,
+                    blacklist_fn=self.prompt_blacklist,
+                    priority_fn=self.prompt_priority,
+                )
             try:
                 self.subtensor.serve_axon(
                     netuid=self.config.netuid,
@@ -147,8 +145,18 @@ class BaseVerifierNeuron(BaseNeuron):
         ]
         await asyncio.gather(*coroutines)
 
-    async def prompt(self):
-        pass
+    async def prompt(self, synapse: protocol.Inference) -> protocol.Inference:
+        bt.logging.debug(f"store_user_data() {synapse.axon.dict()}")
+        query = synapse.query
+
+        # Forward the query to the network 
+
+        response = ""
+
+        # Complete the synapse with the response.
+        synapse.completion = response
+
+        return synapse
 
     async def prompt_blacklist(self):
         pass

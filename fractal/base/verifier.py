@@ -112,6 +112,10 @@ class BaseVerifierNeuron(BaseNeuron):
         self.lock = asyncio.Lock()
 
 
+    def verify(self, synapse: protocol.Inference) -> None:
+        """Verify the incoming synapse."""
+        return None
+
     def serve_axon(self):
         """Serve axon to enable external connections."""
 
@@ -122,13 +126,23 @@ class BaseVerifierNeuron(BaseNeuron):
                 self.axon.attach(
                     forward_fn=self.prompt,
                     blacklist_fn=self.prompt_blacklist,
+                    verify_fn=self.verify,
                     priority_fn=self.prompt_priority,
                 )
-                print("successfully attached axon")
-                print("successfully attached axon")
-                print("successfully attached axon")
-                print("successfully attached axon")
-                print("successfully attached axon")
+
+                inference = protocol.Inference(
+                    query="What is the weather today?",
+                    sampling_params=protocol.ChallengeSamplingParams(seed=123456789)
+                )
+
+                print("=====================================")
+                print("inference headers: ")
+                print(inference.to_headers())
+                print("inference body: ")
+                print(inference.json())
+                print("inference dendrite: ")
+                print(inference.dendrite)
+                print("=====================================")
                 self.axon.start()
             try:
                 self.subtensor.serve_axon(

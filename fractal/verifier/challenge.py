@@ -211,7 +211,7 @@ async def challenge_data( self ):
         if self.config.mock:
             event.uids.append(uid)
             event.successful.append(verified)        
-            event.completion_times.append(0.0)
+            event.completion_times.append(0.0) # What is this
             event.task_status_messages.append("mock")
             event.task_status_codes.append(0)
             event.rewards.append(rewards[i].item())

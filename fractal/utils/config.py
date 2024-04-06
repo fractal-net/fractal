@@ -184,11 +184,11 @@ def add_verifier_args(cls, parser):
     )
 
     parser.add_argument(
-            "--neuron.decay_alpha",
-            type=float,
-            help="The decay alpha for the moving average.",
-            default=0.001,
-        )
+        "--neuron.decay_alpha",
+        type=float,
+        help="The decay alpha for the moving average.",
+        default=0.001,
+    )
 
     parser.add_argument(
         "--neuron.max_tokens",

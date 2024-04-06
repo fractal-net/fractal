@@ -223,6 +223,8 @@ def apply_reward_scores(
         0, torch.tensor(uids).to(self.device), scaled_rewards
     ).to(self.device)
 
+    # global weight vector and local rewards vector - scatter maps local rewards vector indicies to global position 
+
     bt.logging.trace(f"Scattered rewards: {scattered_rewards}")
 
     # Update moving_averaged_scores with rewards produced by this step.

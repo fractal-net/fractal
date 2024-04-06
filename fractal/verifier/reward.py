@@ -222,6 +222,7 @@ def apply_reward_scores(
     scattered_rewards: torch.FloatTensor = self.scores.scatter(
         0, torch.tensor(uids).to(self.device), scaled_rewards
     ).to(self.device)
+
     bt.logging.trace(f"Scattered rewards: {scattered_rewards}")
 
     # Update moving_averaged_scores with rewards produced by this step.

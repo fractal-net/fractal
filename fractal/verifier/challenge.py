@@ -159,7 +159,6 @@ async def challenge_data( self ):
     private_input = {'query': prompt}
     seed = random.randint(1, 2**32 - 1)
 
-
     sampling_params = protocol.ChallengeSamplingParams(
         seed=seed,
     )

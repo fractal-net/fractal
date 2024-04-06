@@ -22,6 +22,7 @@ import random
 import typing
 import asyncio
 import httpx
+import string
 import bittensor as bt
 
 from fractal import protocol
@@ -119,6 +120,14 @@ async def handle_challenge( self, uid: int, private_input: typing.Dict, ground_t
         )
         return verified, output_dict
 
+
+def generate_challenge( self ):
+    length = self.config.neuron.challenge_size or 100
+    char_pool = string.ascii_letters + string.digits
+    return ''.join(random.choice(char_pool) for i in range(length))
+
+
+
 async def challenge_data( self ):
     
     def remove_indices_from_tensor(tensor, indices_to_remove):
@@ -145,16 +154,10 @@ async def challenge_data( self ):
         moving_averaged_scores=None,
     )
 
-    url = self.config.neuron.challenge_url
 
     
-    hotkey = self.wallet.hotkey.ss58_address 
-    signature = f"0x{self.wallet.hotkey.sign(hotkey).hex()}"
 
-    private_input = httpx.get(url, auth=HTTPBasicAuth(hotkey, signature)).json()
-    bt.logging.info(f"Challenge data: {private_input}")
-
-    prompt = private_input["query"]
+    prompt = generate_challenge(self)
     seed = random.randint(1, 2**32 - 1)
 
 

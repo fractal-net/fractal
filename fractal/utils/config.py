@@ -306,6 +306,14 @@ def add_verifier_args(cls, parser):
         default=360,
     )
 
+    parser.add_argument(
+        "--neuron.challenge_size",
+        type=int,
+        help="The size of the challenge.",
+        default=100,
+    )
+
+
 def config(cls):
     """
     Returns the configuration object specific to this prover or verifier after adding relevant arguments.

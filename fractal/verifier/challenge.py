@@ -158,6 +158,7 @@ async def challenge_data( self ):
     
 
     prompt = generate_challenge(self)
+    private_input = {'query': prompt}
     seed = random.randint(1, 2**32 - 1)
 
 

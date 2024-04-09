@@ -33,10 +33,38 @@ class Miner:
     inference_successes: int
     challenge_attempts: int
     challenge_successes: int
-    average_response_time: float
     total_attempts: int
     total_successes: int
+    average_response_time: float
+    average_throughput: float
     last_interval_block: int
+
+    def to_dict(self):
+        return {
+            "inference_attempts": self.inference_attempts,
+            "inference_successes": self.inference_successes,
+            "challenge_attempts": self.challenge_attempts,
+            "challenge_successes": self.challenge_successes,
+            "total_interval_attempts": self.total_attempts,
+            "total_interval_successes": self.total_successes,
+            "average_response_time": self.average_response_time,
+            "average_throughput": self.average_throughput,
+            "last_interval_block": self.last_interval_block,
+        }
+
+    @staticmethod
+    def from_dict(data):
+        return Miner(
+            inference_attempts=data["inference_attempts"],
+            inference_successes=data["inference_successes"],
+            challenge_attempts=data["challenge_attempts"],
+            challenge_successes=data["challenge_successes"],
+            total_attempts=data["total_attempts"],
+            total_successes=data["total_successes"],
+            average_response_time=data["average_response_time"],
+            average_throughput=data["average_throughput"],
+            last_interval_block=data["last_interval_block"],
+        )
 
 
     
@@ -47,11 +75,15 @@ async def reset_request_stats(stats_key: str, database: aioredis.Redis):
     await database.hmset(
         stats_key,
         {
-            "inference_attempts": 0,
-            "inference_successes": 0,
-            "challenge_successes": 0,
-            "challenge_attempts": 0,
-            "total_interval_successes": 0,
+
+            "inference_attempts": self.inference_attempts,
+            "inference_successes": self.inference_successes,
+            "challenge_attempts": self.challenge_attempts,
+            "challenge_successes": self.challenge_successes,
+            "total_attempts": self.total_attempts,
+            "total_successes": self.total_successes,
+            "average_response_time": self.average_response_time,
+            "average_throughput": self.average_throughput,
         },
     )
 

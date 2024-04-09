@@ -17,7 +17,6 @@
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-import os
 import sys
 import copy
 import torch
@@ -62,6 +61,7 @@ class BaseVerifierNeuron(BaseNeuron):
             db=self.config.database.index,
             password=self.config.database.password,
         )
+
         self.db_semaphore = asyncio.Semaphore()
 
         if not self.config.mock:

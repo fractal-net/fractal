@@ -21,13 +21,11 @@ import torch
 import random
 import typing
 import asyncio
-import httpx
 import string
 import bittensor as bt
 
 from fractal import protocol
 from fractal.verifier.event import EventSchema
-from requests.auth import HTTPBasicAuth
 from fractal.constants import CHALLENGE_FAILURE_REWARD
 from fractal.utils.uids import get_random_uids
 from fractal.verifier.bonding import update_statistics, get_tier_factor
@@ -60,6 +58,7 @@ def verify( self, output, ground_truth_hash):
         f"Output hash {output_hash} matches ground truth hash {ground_truth_hash}"
     )
     return True
+
 
 async def handle_challenge( self, uid: int, private_input: typing.Dict, ground_truth_hash: str, sampling_params: protocol.ChallengeSamplingParams ) -> typing.Tuple[bool, protocol.Challenge]:
     """
@@ -128,7 +127,7 @@ def generate_challenge( self ):
 
 
 
-async def challenge_data( self ):
+async def challenge_miners( self ):
     
     def remove_indices_from_tensor(tensor, indices_to_remove):
         # Sort indices in descending order to avoid index out of range error
@@ -154,13 +153,10 @@ async def challenge_data( self ):
         moving_averaged_scores=None,
     )
 
-
-    
-
+    # --- choose a query 
     prompt = generate_challenge(self)
     private_input = {'query': prompt}
     seed = random.randint(1, 2**32 - 1)
-
 
     sampling_params = protocol.ChallengeSamplingParams(
         seed=seed,
@@ -170,15 +166,15 @@ async def challenge_data( self ):
     ground_truth_output = await self.client.generate(prompt, seed) 
     await self.client.close_session()
 
-    # --- get hashing function
     ground_truth_hash = hashing_function(ground_truth_output)
 
-    # --- Get the uids to query
     start_time = time.time()
     tasks = []
-    # uids = await get_tiered_uids( self, k=self.config.neuron.sample_size )
+
+    # --- Choose n random miners
     uids = get_random_uids( self, k=self.config.neuron.sample_size )
 
+    # --- query n random miners
     bt.logging.debug(f"challenge uids {uids}")
     responses = []
     for uid in uids:
@@ -227,7 +223,7 @@ async def challenge_data( self ):
             event.rewards.append(rewards[i].item())
 
     bt.logging.debug(
-        f"challenge_data() rewards: {rewards} | uids {uids} hotkeys {[self.metagraph.hotkeys[uid] for uid in uids]}"
+        f"challenge_miners() rewards: {rewards} | uids {uids} hotkeys {[self.metagraph.hotkeys[uid] for uid in uids]}"
     )
 
     event.step_length = time.time() - start_time
@@ -239,10 +235,10 @@ async def challenge_data( self ):
     # Remove UIDs without hashes (don't punish new miners that have no challenges yet)
     uids, responses = _filter_verified_responses(uids, responses)
     bt.logging.debug(
-        f"challenge_data() full rewards: {rewards} | uids {uids} | uids to remove {remove_reward_idxs}"
+        f"challenge_miners() full rewards: {rewards} | uids {uids} | uids to remove {remove_reward_idxs}"
     )
     rewards = remove_indices_from_tensor(rewards, remove_reward_idxs)
-    bt.logging.debug(f"challenge_data() kept rewards: {rewards} | uids {uids}")
+    bt.logging.debug(f"challenge_miners() kept rewards: {rewards} | uids {uids}")
 
     bt.logging.trace("Applying challenge rewards")
     apply_reward_scores(

@@ -22,7 +22,7 @@ import bittensor as bt
 from pprint import pformat
 
 from fractal.verifier.state import log_event
-from fractal.verifier.challenge import challenge_data
+from fractal.verifier.challenge import challenge_miners
 from fractal.verifier.inference import inference_data
 from fractal.verifier.bonding import compute_all_tiers
 from fractal.verifier.database import get_prover_statistics, total_verifier_requests
@@ -55,7 +55,7 @@ async def forward(self):
 
     # --- Generate the query.
     try:
-        event = await challenge_data(self)
+        event = await challenge_miners(self)
     except Exception as e:
         bt.logging.error(f"Failed to fetch challenge data: {e}")
         return

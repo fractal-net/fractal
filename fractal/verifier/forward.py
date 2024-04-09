@@ -60,33 +60,21 @@ async def forward(self):
         bt.logging.error(f"Failed to fetch challenge data: {e}")
         return
 
-
     # --- Log the event
     log_event(self, event)
 
-    if not self.config.mock:
-        if self.block >= self.next_adjustment_block and self.step > 0:
-            bt.logging.info("initiating compute stats")
-            await compute_all_tiers(self.database, self.block)
+    if self.block >= self.next_adjustment_block and self.step > 0:
+        bt.logging.info("initiating compute stats")
+        await compute_all_tiers(self.database, self.block)
 
-            # Update prover statistics and usage data.
-            stats = await get_prover_statistics(self.database)
-            bt.logging.debug(f"prover stats: {pformat(stats)}")
+        # Update prover statistics and usage data.
+        stats = await get_prover_statistics(self.database)
+        bt.logging.debug(f"prover stats: {pformat(stats)}")
 
-            self.last_interval_block = self.get_last_adjustment_block()
-            self.adjustment_interval = self.get_adjustment_interval()
-            self.next_adjustment_block = self.last_interval_block + self.adjustment_interval
-            self.step = 0
-    else:
-        if self.step % self.config.neuron.compute_stats_interval == 0 and self.step > 0:
-            bt.logging.info("initiating compute stats")
-            await compute_all_tiers(self.database, self.block)
-
-            # Update prover statistics and usage data.
-            stats = await get_prover_statistics(self.database)
-            bt.logging.debug(f"prover stats: {pformat(stats)}")
-            self.step = 0
-
+        self.last_interval_block = self.get_last_adjustment_block()
+        self.adjustment_interval = self.get_adjustment_interval()
+        self.next_adjustment_block = self.last_interval_block + self.adjustment_interval
+        self.step = 0
 
     total_request_size = await total_verifier_requests(self.database)
     bt.logging.info(f"total verifier requests: {total_request_size}")

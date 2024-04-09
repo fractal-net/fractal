@@ -30,7 +30,6 @@ from typing import List
 from traceback import print_exception
 from substrateinterface.base import SubstrateInterface
 
-from fractal.mock import MockDendrite
 from fractal.base.neuron import BaseNeuron
 from fractal.utils.config import add_verifier_args
 
@@ -64,20 +63,16 @@ class BaseVerifierNeuron(BaseNeuron):
 
         self.db_semaphore = asyncio.Semaphore()
 
-        if not self.config.mock:
-            substrate = SubstrateInterface(
-                ss58_format=bt.__ss58_format__,
-                use_remote_preset=True,
-                url=self.subtensor.chain_endpoint,
-                type_registry=bt.__type_registry__,
-            )
-            self.subscription_substrate = substrate
+        substrate = SubstrateInterface(
+            ss58_format=bt.__ss58_format__,
+            use_remote_preset=True,
+            url=self.subtensor.chain_endpoint,
+            type_registry=bt.__type_registry__,
+        )
+        self.subscription_substrate = substrate
 
         # Dendrite lets us send messages to other nodes (axons) in the network.
-        if self.config.mock:
-            self.dendrite = MockDendrite(wallet=self.wallet)
-        else:
-            self.dendrite = bt.dendrite(wallet=self.wallet)
+        self.dendrite = bt.dendrite(wallet=self.wallet)
 
 
         bt.logging.info(f"Dendrite: {self.dendrite}")

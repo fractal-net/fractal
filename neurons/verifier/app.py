@@ -38,11 +38,10 @@ class Verifier(BaseVerifierNeuron):
         super(Verifier, self).__init__(config=config)
 
         bt.logging.info("load_state()")
-        if not self.config.mock:
-            self.load_state()
-            for i, axon in enumerate(self.metagraph.axons):
-                bt.logging.info(f"axons[{i}]: {axon}")
-                check_uid_availability(self.metagraph, i, self.config.neuron.vpermit_tao_limit)
+        self.load_state()
+        for i, axon in enumerate(self.metagraph.axons):
+            bt.logging.info(f"axons[{i}]: {axon}")
+            check_uid_availability(self.metagraph, i, self.config.neuron.vpermit_tao_limit)
 
         # inference client
         self.client = HttpClient(self.config.neuron.model_endpoint)

@@ -75,49 +75,27 @@ async def handle_challenge( self, uid: int, private_input: typing.Dict, ground_t
     keys = await self.database.hkeys(f"hotkey:{hotkey}")
     bt.logging.trace(f"{len(keys)} stats pulled for hotkey {hotkey}")
 
-    if not self.config.mock:
-        synapse = protocol.Challenge(
-            query = private_input["query"],
-            sampling_params=sampling_params,
-        )
+    synapse = protocol.Challenge(
+        query = private_input["query"],
+        sampling_params=sampling_params,
+    )
 
-        response = await self.dendrite(
-            self.metagraph.axons[uid],
-            synapse,
-            deserialize=False,
-            timeout=self.config.neuron.timeout,
-        )
+    response = await self.dendrite(
+        self.metagraph.axons[uid],
+        synapse,
+        deserialize=False,
+        timeout=self.config.neuron.timeout,
+    )
 
-        output = response.completion
-        
-        verified = verify( self, output, ground_truth_hash )
-
-        output_dict = (
-            response,
-            uid
-        )
-        return verified, output_dict
+    output = response.completion
     
-    else:
+    verified = verify( self, output, ground_truth_hash )
 
-        synapse = protocol.Challenge(
-            query = private_input["query"],
-            sampling_params=sampling_params,
-        )
-
-
-        response = await self.client.generate(prompt, sampling_params.seed)
-        await self.client.close_session()
-
-        synapse.completion = response
-
-        verified = verify( self, response, ground_truth_hash )
-
-        output_dict = (
-            synapse,
-            uid
-        )
-        return verified, output_dict
+    output_tup = (
+        response,
+        uid
+    )
+    return verified, output_tup
 
 
 def generate_challenge( self ):
@@ -189,7 +167,7 @@ async def challenge_miners( self ):
     remove_reward_idxs = []
     for i, (verified, (response, uid)) in enumerate(responses):
         bt.logging.trace(
-            f"Challenge iteration {i} uid {uid} response {str(response.completion if not self.config.mock else response)}"
+            f"Challenge iteration {i} uid {uid} response {str(response.completion)}"
         )
 
         hotkey = self.metagraph.hotkeys[uid]
@@ -207,20 +185,12 @@ async def challenge_miners( self ):
         tier_factor = await get_tier_factor(hotkey, self.database)
         rewards[i] = 1.0 * tier_factor if verified else CHALLENGE_FAILURE_REWARD
 
-        if self.config.mock:
-            event.uids.append(uid)
-            event.successful.append(verified)        
-            event.completion_times.append(0.0)
-            event.task_status_messages.append("mock")
-            event.task_status_codes.append(0)
-            event.rewards.append(rewards[i].item())
-        else: 
-            event.uids.append(uid)
-            event.successful.append(verified)
-            event.completion_times.append(response.dendrite.process_time)
-            event.task_status_messages.append(response.dendrite.status_message)
-            event.task_status_codes.append(response.dendrite.status_code)
-            event.rewards.append(rewards[i].item())
+        event.uids.append(uid)
+        event.successful.append(verified)
+        event.completion_times.append(response.dendrite.process_time)
+        event.task_status_messages.append(response.dendrite.status_message)
+        event.task_status_codes.append(response.dendrite.status_code)
+        event.rewards.append(rewards[i].item())
 
     bt.logging.debug(
         f"challenge_miners() rewards: {rewards} | uids {uids} hotkeys {[self.metagraph.hotkeys[uid] for uid in uids]}"

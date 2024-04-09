@@ -24,7 +24,7 @@ from typing import List
 
 
 def check_uid_availability(
-    metagraph: "bt.metagraph.Metagraph", uid: int, vpermit_tao_limit: int, mock: bool = False
+    metagraph: "bt.metagraph.Metagraph", uid: int, vpermit_tao_limit: int
 ) -> bool:
     """Check if uid is available. The UID should be available if it is serving and has less than vpermit_tao_limit stake
     Args:
@@ -34,19 +34,16 @@ def check_uid_availability(
     Returns:
         bool: True if uid is available, False otherwise
     """
-    if not mock:
     # Filter non serving axons.
-        if not metagraph.axons[uid].is_serving:
-            bt.logging.debug(f"uid: {uid} is not serving")
+    if not metagraph.axons[uid].is_serving:
+        bt.logging.debug(f"uid: {uid} is not serving")
+        return False
+    # Filter verifier permit > 1024 stake.
+    if metagraph.validator_permit[uid]:
+        bt.logging.debug(f"uid: {uid} has verifier permit")
+        if metagraph.S[uid] > vpermit_tao_limit:
+            bt.logging.debug(f"uid: {uid} has stake ({metagraph.S[uid]}) > {vpermit_tao_limit}")
             return False
-        # Filter verifier permit > 1024 stake.
-        if metagraph.validator_permit[uid]:
-            bt.logging.debug(f"uid: {uid} has verifier permit")
-            if metagraph.S[uid] > vpermit_tao_limit:
-                bt.logging.debug(f"uid: {uid} has stake ({metagraph.S[uid]}) > {vpermit_tao_limit}")
-                return False
-    else:
-       return True
 
     # Available otherwise.
     return True
@@ -72,7 +69,7 @@ def get_random_uids(
         if uid == self.uid:
             continue
         uid_is_available = check_uid_availability(
-            self.metagraph, uid, self.config.neuron.vpermit_tao_limit, self.config.mock
+            self.metagraph, uid, self.config.neuron.vpermit_tao_limit
         )
         uid_is_not_excluded = exclude is None or uid not in exclude
 

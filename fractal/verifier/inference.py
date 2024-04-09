@@ -30,40 +30,20 @@ async def handle_inference(
         sampling_params: protocol.InferenceeSamplingParams, 
         uid: int
     ):
-    if not self.config.mock:
-        synapse = protocol.Challenge(
-            sources = [private_input["sources"]],
-            query = private_input["query"],
-            sampling_params=sampling_params,
-        )
+    synapse = protocol.Challenge(
+        sources = [private_input["sources"]],
+        query = private_input["query"],
+        sampling_params=sampling_params,
+    )
 
-        async for token in await self.dendrite(
-            self.metagraph.axons[uid],
-            synapse,
-            deserialize=False,
-            timeout=self.config.neuron.timeout,
-        ):
-            print(token)
+    async for token in await self.dendrite(
+        self.metagraph.axons[uid],
+        synapse,
+        deserialize=False,
+        timeout=self.config.neuron.timeout,
+    ):
+        print(token)
 
-    else:
-        prompt = private_input
-        async for token in await self.client.text_generation(
-            prompt=prompt,
-            best_of=sampling_params.best_of,
-            max_new_tokens=sampling_params.max_new_tokens,
-            seed=sampling_params.seed,
-            do_sample=sampling_params.do_sample,
-            repetition_penalty=sampling_params.repetition_penalty,
-            temperature=sampling_params.temperature,
-            top_k=sampling_params.top_k,
-            top_p=sampling_params.top_p,
-            truncate=sampling_params.truncate,
-            typical_p=sampling_params.typical_p,
-            watermark=sampling_params.watermark,
-            details=sampling_params.details,
-            stream=False
-        ):
-            print(token)
 
     return None
 

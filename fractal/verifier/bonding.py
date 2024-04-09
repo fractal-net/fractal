@@ -22,6 +22,25 @@ import asyncio
 import bittensor as bt
 from redis import asyncio as aioredis
 from fractal.constants import *
+from dataclasses import dataclass
+
+@dataclass
+class Miner: 
+    """
+    Represents a miner's statistics in the homogenous inference grid
+    """ 
+    inference_attempts: int
+    inference_successes: int
+    challenge_attempts: int
+    challenge_successes: int
+    average_response_time: float
+    total_attempts: int
+    total_successes: int
+    last_interval_block: int
+
+
+    
+
 
 # TODO: update
 async def reset_request_stats(stats_key: str, database: aioredis.Redis):

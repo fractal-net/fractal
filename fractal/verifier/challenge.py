@@ -29,7 +29,7 @@ from fractal.verifier.event import EventSchema
 from fractal.constants import CHALLENGE_FAILURE_REWARD
 from fractal.utils.uids import get_random_uids
 from fractal.verifier.bonding import update_statistics
-from fractal.verifier.reward import hashing_function, apply_reward_scores
+from fractal.verifier.reward import hashing_function, apply_reward_scores, compute_reward
 
 
 def _filter_verified_responses(uids, responses):
@@ -182,8 +182,10 @@ async def challenge_miners( self ):
         )
 
         # Apply reward for this challenge
-        tier_factor = await get_tier_factor(hotkey, self.database)
-        rewards[i] = 1.0 * tier_factor if verified else CHALLENGE_FAILURE_REWARD
+        rewards[i] = compute_reward( 
+            self,
+            verified,
+        )
 
         event.uids.append(uid)
         event.successful.append(verified)

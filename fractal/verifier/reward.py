@@ -163,6 +163,18 @@ def scale_rewards(self, uids, responses, rewards, timeout: float, mode: str):
     bt.logging.debug(f"scale_rewards_by_{mode}() rewards: {rewards}")
     return rewards
 
+def compute_reward(self, verified: bool): 
+    """ 
+    Computes the reward value for a given challenge.
+    Args:
+        verified (bool): A boolean indicating whether the challenge was successful.
+    Returns:
+        float: The computed reward value.
+    """
+    if verified:
+        return 1.0
+    return 0.0
+
 
 def apply_reward_scores(
     self, uids, responses, rewards, timeout: float, mode: str = "sigmoid"

@@ -205,14 +205,6 @@ def add_verifier_args(cls, parser):
     )
 
     parser.add_argument(
-        "--neuron.reward_mode",
-        default="sigmoid",
-        type=str,
-        choices=["minmax", "sigmoid"],
-        help="Reward mode for the validator.",
-    )
-
-    parser.add_argument(
         "--neuron.challenge_url",
         type=str,
         help="The url to use for the challenge server.",

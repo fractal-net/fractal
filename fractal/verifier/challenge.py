@@ -28,7 +28,7 @@ from fractal import protocol
 from fractal.verifier.event import EventSchema
 from fractal.constants import CHALLENGE_FAILURE_REWARD
 from fractal.utils.uids import get_random_uids
-from fractal.verifier.bonding import update_statistics, get_tier_factor
+from fractal.verifier.bonding import update_statistics
 from fractal.verifier.reward import hashing_function, apply_reward_scores
 
 

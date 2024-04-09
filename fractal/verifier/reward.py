@@ -123,25 +123,6 @@ def sigmoid_normalize(process_times, timeout):
     return adjusted_sigmoid_inverse(centered_times, steepness, shift)
 
 
-def min_max_normalize(times):
-    """
-    Normalizes the response times using Min-Max scaling.
-    Args:
-        times (List[float]): A list of response times.
-    Returns:
-        List[float]: Normalized response times scaled between 0 and 1.
-    """
-    if times == []:
-        return []
-    min_time = min(times)
-    max_time = max(times)
-    range_time = max_time - min_time
-    if range_time == 0:
-        # Avoid division by zero in case all times are the same
-        return [0.5 for _ in times]
-    return [(time - max_time) / range_time for time in times]
-
-
 def scale_rewards(self, uids, responses, rewards, timeout: float, mode: str):
     """
     Scales the rewards for each axon based on their response times using `mode` normalization.
@@ -155,12 +136,6 @@ def scale_rewards(self, uids, responses, rewards, timeout: float, mode: str):
         List[float]: A list of scaled rewards for each axon.
     """
 
-    # max_time = max(
-    #     [
-    #         response.dendrite.process_time for response in responses
-    #         if response.dendrite.process_time is not None
-    #     ] or [1] # nobody responded successfully
-    # )
 
     sorted_axon_times = get_sorted_response_times(self, uids, responses, timeout=timeout)
 
@@ -169,9 +144,7 @@ def scale_rewards(self, uids, responses, rewards, timeout: float, mode: str):
 
     # Normalize the response times
     normalized_times = (
-        min_max_normalize(process_times)
-        if mode == "minmax"
-        else sigmoid_normalize(process_times, timeout)
+        sigmoid_normalize(process_times, timeout)
     )
 
     # Create a dictionary mapping UIDs to normalized times

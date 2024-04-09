@@ -72,23 +72,22 @@ class Miner:
 
 # TODO: update
 async def reset_request_stats(stats_key: str, database: aioredis.Redis):
-    await database.hmset(
+    await database.hset(
         stats_key,
-        {
-
-            "inference_attempts": self.inference_attempts,
-            "inference_successes": self.inference_successes,
-            "challenge_attempts": self.challenge_attempts,
-            "challenge_successes": self.challenge_successes,
-            "total_attempts": self.total_attempts,
-            "total_successes": self.total_successes,
-            "average_response_time": self.average_response_time,
-            "average_throughput": self.average_throughput,
+        mapping={
+            "inference_attempts": 0,
+            "inference_successes": 0,
+            "challenge_attempts": 0,
+            "challenge_successes": 0,
+            "total_attempts":  0,
+            "total_successes": 0,
+            "average_response_time": ESTIMATED_AVERAGE_RESPONSE_TIME,  
+            "average_throughput": ESTIMATED_AVERAGE_THROUGHPUT,
         },
     )
 
 
-# TODO: update
+
 async def rollover_request_stats(database: aioredis.Redis):
     """
     Asynchronously resets the request statistics for all miners.
@@ -101,7 +100,7 @@ async def rollover_request_stats(database: aioredis.Redis):
     await asyncio.gather(*tasks)
 
 
-# TODO: update
+
 async def miner_is_registered(ss58_address: str, database: aioredis.Redis):
     """
     Checks if a miner is registered in the database.
@@ -116,7 +115,6 @@ async def miner_is_registered(ss58_address: str, database: aioredis.Redis):
     return await database.exists(f"stats:{ss58_address}")
 
 
-# TODO: update
 async def register_miner(ss58_address: str, database: aioredis.Redis, current_block: int):
     """
     Registers a new miner in the local copy of the homogeneous inference grid, initializing their statistics.
@@ -126,23 +124,24 @@ async def register_miner(ss58_address: str, database: aioredis.Redis, current_bl
         database (redis.Redis): The Redis client instance for database operations.
     """
     # Initialize statistics for a new miner in a separate hash
-    await database.hmset(
+    await database.hset(
         f"stats:{ss58_address}",
-        {
+        mapping={
             "inference_attempts": 0,
             "inference_successes": 0,
-            "challenge_successes": 0,
             "challenge_attempts": 0,
+            "challenge_successes": 0,
             "total_attempts": 0,
             "total_successes": 0,
-            "last_interval_block": current_block, 
+            "average_response_time": ESTIMATED_AVERAGE_RESPONSE_TIME,
+            "average_throughput": ESTIMATED_AVERAGE_THROUGHPUT,
         },
     )
 
 
 # TODO: update
 async def update_statistics(
-    ss58_address: str, success: bool, task_type: str, database: aioredis.Redis, current_block: int
+    ss58_address: str, success: bool, task_type: str, database: aioredis.Redis, current_block: int, response_time: float
 ):
     """
     Updates the statistics of a miner in the decentralized storage system.
@@ -160,9 +159,10 @@ async def update_statistics(
         bt.logging.debug(f"Registering new miner {ss58_address}...")
         await register_miner(ss58_address, database, current_block)
 
-    # Update statistics in the stats hash
+   # Update statistics in the stats hash
     stats_key = f"stats:{ss58_address}"
-
+ 
+    await database.hincrby(stats_key, f"total_attempts", 1)
     if task_type in ["inference", "challenge"]:
         await database.hincrby(stats_key, f"{task_type}_attempts", 1)
         if success:

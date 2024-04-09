@@ -16,7 +16,6 @@
 # DEALINGS IN THE SOFTWARE.
 
 import torch
-import random
 import hashlib
 import numpy as np
 import bittensor as bt
@@ -27,20 +26,7 @@ def hashing_function(input):
     hashed_input = hashlib.sha256(input.encode('utf-8')).hexdigest()
     return hashed_input
 
-
-def seed_function():
-    # randomly generate a seed
-    return random.randint(1000000, 10000000000)
     
-def adjusted_sigmoid(x, steepness=1, shift=0):
-    """
-    Adjusted sigmoid function.
-
-    This function is a modified version of the sigmoid function that is shifted
-    to the right by a certain amount.
-    """
-    return 1 / (1 + np.exp(-steepness * (x - shift)))
-
 
 def adjusted_sigmoid_inverse(x, steepness=1, shift=0):
     """
@@ -123,7 +109,7 @@ def sigmoid_normalize(process_times, timeout):
     return adjusted_sigmoid_inverse(centered_times, steepness, shift)
 
 
-def scale_rewards(self, uids, responses, rewards, timeout: float, mode: str):
+def scale_rewards(self, uids, responses, rewards, timeout: float):
     """
     Scales the rewards for each axon based on their response times using `mode` normalization.
     Args:
@@ -177,7 +163,7 @@ def compute_reward(self, verified: bool):
 
 
 def apply_reward_scores(
-    self, uids, responses, rewards, timeout: float, mode: str = "sigmoid"
+    self, uids, responses, rewards, timeout: float 
 ):
     """
     Adjusts the moving average scores for a set of UIDs based on their response times and reward values.
@@ -189,15 +175,12 @@ def apply_reward_scores(
         responses (List[Response]): A list of response objects received from the nodes.
         rewards (torch.FloatTensor): A tensor containing the computed reward values.
     """
-    if mode not in ["sigmoid", "minmax"]:
-        raise ValueError(f"Invalid mode: {mode}")
-
     if self.config.neuron.verbose:
         bt.logging.debug(f"Applying rewards: {rewards}")
         bt.logging.debug(f"Reward shape: {rewards.shape}")
         bt.logging.debug(f"UIDs: {uids}")
 
-    scaled_rewards = scale_rewards(self, uids, responses, rewards, timeout=timeout, mode=mode)
+    scaled_rewards = scale_rewards(self, uids, responses, rewards, timeout=timeout)
     bt.logging.debug(f"apply_reward_scores() Scaled rewards: {scaled_rewards}")
 
     # Compute forward pass rewards

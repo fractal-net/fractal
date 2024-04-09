@@ -103,7 +103,6 @@ def generate_challenge( self ):
     return ''.join(random.choice(char_pool) for i in range(length))
 
 
-
 async def challenge_miners( self ):
     
     def remove_indices_from_tensor(tensor, indices_to_remove):
@@ -142,7 +141,6 @@ async def challenge_miners( self ):
     # --- Generate the ground truth output
     ground_truth_output = await self.client.generate(prompt, seed) 
     await self.client.close_session()
-
     ground_truth_hash = hashing_function(ground_truth_output)
 
     start_time = time.time()
@@ -178,6 +176,7 @@ async def challenge_miners( self ):
             task_type="challenge",
             database=self.database,
             current_block=self.block,
+            response_time=response.dendrite.process_time,
         )
 
         # Apply reward for this challenge

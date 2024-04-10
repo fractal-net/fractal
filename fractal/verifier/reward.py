@@ -28,128 +28,37 @@ def hashing_function(input):
 
     
 
-def adjusted_sigmoid_inverse(x, steepness=1, shift=0):
+def response_time_sigmoid(response_time):
     """
-    Inverse of the adjusted sigmoid function.
-
-    This function is a modified version of the sigmoid function that is shifted to
-    the right by a certain amount but inverted such that low completion times are
-    rewarded and high completions dimes are punished.
+    Sigmoid function to normalize response time.
     """
-    return 1 / (1 + np.exp(steepness * (x - shift)))
+    b = 1.0
+    h = 1.0
+    numerator = 1 - np.exp(-1 * b * response_time)
+    denominator = 1 + (np.exp(b * h) - 2) * np.exp(-1 * b * response_time)
+    return 1 - (numerator / denominator)
 
-
-def calculate_sigmoid_params(timeout):
+def throughput_sigmoid(throughput):
     """
-    Calculate sigmoid parameters based on the timeout value.
-
-    Args:
-    - timeout (float): The current timeout value.
-
-    Returns:
-    - tuple: A tuple containing the 'steepness' and 'shift' values for the current timeout.
+    Sigmoid function to normalize throughput.
     """
-    base_timeout = 1
-    base_steepness = 7
-    base_shift = 0.3
+    b = 1.0
+    h = 1.0
+    numerator = 1 - np.exp(-1 * b * throughput)
+    denominator = 1 + (np.exp(b * h) - 2) * np.exp(-1 * b * throughput)
+    return 1 - (numerator / denominator)
 
-    # Calculate the ratio of the current timeout to the base timeout
-    ratio = timeout / base_timeout
-
-    # Calculate steepness and shift based on the pattern
-    steepness = base_steepness / ratio
-    shift = base_shift * ratio
-
-    return steepness, shift
-
-
-def get_sorted_response_times(self, uids, responses, timeout: float):
+def envelope(known_blocks, ramp_up_blocks): 
     """
-    Sorts a list of axons based on their response times.
-
-    This function pairs each uid with its corresponding axon's response time,
-    and then sorts this list in ascending order. Lower response times are considered better.
-
-    Args:
-        uids (List[int]): List of unique identifiers for each axon.
-        responses (List[Response]): List of Response objects corresponding to each axon.
-
-    Returns:
-        List[Tuple[int, float]]: A sorted list of tuples, where each tuple contains an axon's uid and its response time.
-
-    Example:
-        >>> get_sorted_response_times([1, 2, 3], [response1, response2, response3])
-        [(2, 0.1), (1, 0.2), (3, 0.3)]
+    Envelope function to ramp up new miners
     """
+    if known_blocks > ramp_up_blocks:
+        return 1
 
-    axon_times = [
-        (
-            uids[idx],
-            response.dendrite.process_time
-            if response.dendrite.process_time != None
-            else timeout,
-            timeout
-        )
-        for idx, response in enumerate(responses)
-    ]
-    # Sorting in ascending order since lower process time is better
-    sorted_axon_times = sorted(axon_times, key=lambda x: x[1])
-    bt.logging.debug(f"sorted_axon_times: {sorted_axon_times}")
-    return sorted_axon_times
+    return np.sqrt(known_blocks / ramp_up_blocks)
 
 
-def sigmoid_normalize(process_times, timeout):
-    # Center the completion times around 0 for effective sigmoid scaling
-    centered_times = process_times - np.mean(process_times)
-
-    # Calculate steepness and shift based on timeout
-    steepness, shift = calculate_sigmoid_params(timeout)
-
-    # Apply adjusted sigmoid function to scale the times
-    return adjusted_sigmoid_inverse(centered_times, steepness, shift)
-
-
-def scale_rewards(self, uids, responses, rewards, timeout: float):
-    """
-    Scales the rewards for each axon based on their response times using `mode` normalization.
-    Args:
-        uids (List[int]): A list of unique identifiers for each axon.
-        responses (List[Response]): A list of Response objects corresponding to each axon.
-        rewards (List[float]): A list of initial reward values for each axon.
-        timeout (float): The timeout value used for response time calculations.
-        mode (str): The normalization mode to use. Can be either 'sigmoid' or 'minmax'.
-    Returns:
-        List[float]: A list of scaled rewards for each axon.
-    """
-
-
-    sorted_axon_times = get_sorted_response_times(self, uids, responses, timeout=timeout)
-
-    # Extract only the process times
-    process_times = [proc_time for _, proc_time, _ in sorted_axon_times]
-
-    # Normalize the response times
-    normalized_times = (
-        sigmoid_normalize(process_times, timeout)
-    )
-
-    # Create a dictionary mapping UIDs to normalized times
-    uid_to_normalized_time = {
-        uid: normalized_time
-        for (uid, _, _), normalized_time in zip(sorted_axon_times, normalized_times)
-    }
-
-    bt.logging.debug(
-        f"scale_rewards_by_{mode}() uid_to_normalized_time: {uid_to_normalized_time}"
-    )
-    # Scale the rewards with normalized times
-    for i, uid in enumerate(uids):
-        normalized_time_for_uid = uid_to_normalized_time[uid]
-        rewards[i] += rewards[i] * normalized_time_for_uid
-    bt.logging.debug(f"scale_rewards_by_{mode}() rewards: {rewards}")
-    return rewards
-
-def compute_reward(self, verified: bool): 
+def compute_reward(self, uid, verified, miner_stats):
     """ 
     Computes the reward value for a given challenge.
     Args:
@@ -157,9 +66,13 @@ def compute_reward(self, verified: bool):
     Returns:
         float: The computed reward value.
     """
-    if verified:
-        return 1.0
+    if not verified:
+        return 0.0
+    
+    # Get the throughput and response time from the miner stats
+    
     return 0.0
+
 
 
 def apply_reward_scores(
@@ -180,7 +93,6 @@ def apply_reward_scores(
         bt.logging.debug(f"Reward shape: {rewards.shape}")
         bt.logging.debug(f"UIDs: {uids}")
 
-    scaled_rewards = scale_rewards(self, uids, responses, rewards, timeout=timeout)
     bt.logging.debug(f"apply_reward_scores() Scaled rewards: {scaled_rewards}")
 
     # Compute forward pass rewards

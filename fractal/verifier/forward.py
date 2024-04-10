@@ -23,7 +23,6 @@ from pprint import pformat
 
 from fractal.verifier.state import log_event
 from fractal.verifier.challenge import challenge_miners
-from fractal.verifier.bonding import compute_all_tiers
 from fractal.verifier.database import get_prover_statistics, total_verifier_requests
 
 def subscribe_to_next_block(self):
@@ -63,12 +62,9 @@ async def forward(self):
     log_event(self, event)
 
     if self.block >= self.next_adjustment_block and self.step > 0:
+        # network reset functionality
         bt.logging.info("initiating compute stats")
 
-        # What do I do in place
-        await compute_all_tiers(self.database, self.block)
-
-        # Update prover statistics and usage data.
         stats = await get_prover_statistics(self.database)
         bt.logging.debug(f"prover stats: {pformat(stats)}")
 

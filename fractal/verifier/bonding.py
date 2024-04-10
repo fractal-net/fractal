@@ -37,7 +37,6 @@ class Miner:
     total_successes: int
     average_response_time: float
     average_throughput: float
-    last_interval_block: int
 
     def to_dict(self):
         return {
@@ -49,7 +48,6 @@ class Miner:
             "total_interval_successes": self.total_successes,
             "average_response_time": self.average_response_time,
             "average_throughput": self.average_throughput,
-            "last_interval_block": self.last_interval_block,
         }
 
     @staticmethod
@@ -63,14 +61,12 @@ class Miner:
             total_successes=data["total_successes"],
             average_response_time=data["average_response_time"],
             average_throughput=data["average_throughput"],
-            last_interval_block=data["last_interval_block"],
         )
 
 
     
 
 
-# TODO: update
 async def reset_request_stats(stats_key: str, database: aioredis.Redis):
     await database.hset(
         stats_key,
@@ -139,7 +135,6 @@ async def register_miner(ss58_address: str, database: aioredis.Redis, current_bl
     )
 
 
-# TODO: update
 async def update_statistics(
     ss58_address: str, success: bool, task_type: str, database: aioredis.Redis, current_block: int, response_time: float
 ):
@@ -154,6 +149,7 @@ async def update_statistics(
         task_type (str): The type of task performed ('store', 'challenge', 'retrieve').
         database (redis.Redis): The Redis client instance for database operations.
     """
+
     # Check and see if this miner is registered.
     if not await miner_is_registered(ss58_address, database):
         bt.logging.debug(f"Registering new miner {ss58_address}...")
@@ -162,22 +158,57 @@ async def update_statistics(
    # Update statistics in the stats hash
     stats_key = f"stats:{ss58_address}"
  
-    await database.hincrby(stats_key, f"total_attempts", 1)
+    total_attempts = await database.hincrby(stats_key, f"total_attempts", 1)
+
     if task_type in ["inference", "challenge"]:
         await database.hincrby(stats_key, f"{task_type}_attempts", 1)
         if success:
+            # mark increase total success count
+            await database.hincrby(stats_key, "total_successes", 1)
+            # mark increase query type success count
             await database.hincrby(stats_key, f"{task_type}_successes", 1)
 
-            # --- add to total_interval_successes
-            await database.hincrby(stats_key, "total_interval_successes", 1)
+
+    # set the updated response time
+    previous_response_time = await get_previous_average_response_time(ss58_address, database)
+    updated_response_time = (previous_response_time * (total_attempts - 1 ) + response_time) / total_attempts
+    new_average_response_time = await database.hset(stats_key, "average_response_time", updated_response_time)
 
 
-    # Update the total successes that we rollover every epoch
-    if await database.hget(stats_key, "total_successes") == None:
-        inference_successes = int(await database.hget(stats_key, "inference_successes"))
-        challenge_successes = int(await database.hget(stats_key, "challenge_successes"))
-        total_successes = inference_successes + challenge_successes
-        await database.hset(stats_key, "total_successes", total_successes)
-    if success:
-        await database.hincrby(stats_key, "total_successes", 1)
+    # set the updated throughput
+    success_count = await database.get(f"stats:{ss58_address}:total_successes")
+    accuracy_rate = success_count / total_attempts
+
+    new_throughput = (accuracy_rate / new_average_response_time) 
+
+    await database.hset(stats_key, "average_throughput", new_throughput)
+
+    miner_stats = await database.hgetall(stats_key)
+    miner = Miner.from_dict({
+        "inference_attempts": int(miner_stats.get("inference_attempts", 0)),
+        "inference_successes": int(miner_stats.get("inference_successes", 0)),
+        "challenge_attempts": int(miner_stats.get("challenge_attempts", 0)),
+        "challenge_successes": int(miner_stats.get("challenge_successes", 0)),
+        "total_attempts": int(miner_stats.get("total_attempts", 0)),
+        "total_successes": int(miner_stats.get("total_successes", 0)),
+        "average_response_time": float(miner_stats.get("average_response_time", 0.0)),
+        "average_throughput": float(miner_stats.get("average_throughput", 0.0)),
+    })
+
+    return miner
+
+
+
+async def get_previous_average_response_time(ss58_address: str, database: aioredis.Redis):
+    """
+    Retrieves the previous average response time of a miner from the database.
+
+    Args:
+        ss58_address (str): The unique address (hotkey) of the miner.
+        database (redis.Redis): The Redis client instance for database operations.
+
+    Returns:
+        The previous average response time of the miner.
+    """
+    return float(await database.hget(f"stats:{ss58_address}", "average_response_time"))
 

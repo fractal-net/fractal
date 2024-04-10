@@ -170,7 +170,7 @@ async def challenge_miners( self ):
         hotkey = self.metagraph.hotkeys[uid]
 
         # Update the challenge statistics
-        await update_statistics(
+        miner_stats = await update_statistics(
             ss58_address=hotkey,
             success=verified,
             task_type="challenge",
@@ -182,7 +182,9 @@ async def challenge_miners( self ):
         # Apply reward for this challenge
         rewards[i] = compute_reward( 
             self,
+            uid,
             verified,
+            miner_stats,
         )
 
         event.uids.append(uid)
@@ -211,13 +213,13 @@ async def challenge_miners( self ):
     bt.logging.debug(f"challenge_miners() kept rewards: {rewards} | uids {uids}")
 
     bt.logging.trace("Applying challenge rewards")
+
     apply_reward_scores(
         self,
         uids,
         responses,
         rewards,
         timeout=self.config.neuron.timeout,
-        mode=self.config.neuron.reward_mode,
     )
 
     # Determine the best UID based on rewards

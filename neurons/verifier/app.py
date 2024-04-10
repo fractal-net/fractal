@@ -50,6 +50,11 @@ class Verifier(BaseVerifierNeuron):
         self.last_interval_block = self.get_last_adjustment_block()
         self.adjustment_interval = self.get_adjustment_interval()
         self.next_adjustment_block = self.last_interval_block + self.adjustment_interval
+        print(self.config.neuron.full_path)
+        print(self.config.neuron.full_path)
+        print(self.config.neuron.full_path)
+        print(self.config.neuron.full_path)
+        print(self.config.neuron.full_path)
 
 
 

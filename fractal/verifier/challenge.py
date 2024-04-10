@@ -87,7 +87,8 @@ async def handle_challenge( self, uid: int, private_input: typing.Dict, ground_t
     )
 
     output = response.completion
-    
+        
+    # if output is None, None is passed to verify, and None check is performed in hashing_function
     verified = verify( self, output, ground_truth_hash )
 
     output_tup = (
@@ -105,13 +106,6 @@ def generate_challenge( self ):
 
 async def challenge_miners( self ):
     
-    def remove_indices_from_tensor(tensor, indices_to_remove):
-        # Sort indices in descending order to avoid index out of range error
-        sorted_indices = sorted(indices_to_remove, reverse=True)
-        for index in sorted_indices:
-            tensor = torch.cat([tensor[:index], tensor[index + 1 :]])
-        return tensor
-
     # --- Create the event
     event = EventSchema(
         task_name="challenge",
@@ -139,9 +133,15 @@ async def challenge_miners( self ):
     )
 
     # --- Generate the ground truth output
+    # TODO: is returning early here the right thing to do?
     ground_truth_output = await self.client.generate(prompt, seed) 
     await self.client.close_session()
+    if ground_truth_output is None:
+        bt.logging.error("Failed to generate ground truth output.")
+        return event
+
     ground_truth_hash = hashing_function(ground_truth_output)
+    bt.logging.debug(f"Ground truth hash for challenge requests: {ground_truth_hash}")
 
     start_time = time.time()
     tasks = []
@@ -161,7 +161,6 @@ async def challenge_miners( self ):
         self.device
     )
 
-    remove_reward_idxs = []
     for i, (verified, (response, uid)) in enumerate(responses):
         bt.logging.trace(
             f"Challenge iteration {i} uid {uid} response {str(response.completion)}"
@@ -181,9 +180,6 @@ async def challenge_miners( self ):
 
         # Apply reward for this challenge
         rewards[i] = compute_reward( 
-            self,
-            uid,
-            verified,
             miner_stats,
         )
 
@@ -205,21 +201,16 @@ async def challenge_miners( self ):
         return event
 
     # Remove UIDs without hashes (don't punish new miners that have no challenges yet)
-    uids, responses = _filter_verified_responses(uids, responses)
     bt.logging.debug(
-        f"challenge_miners() full rewards: {rewards} | uids {uids} | uids to remove {remove_reward_idxs}"
+        f"challenge_miners() rewards: {rewards} | uids {uids}"
     )
-    rewards = remove_indices_from_tensor(rewards, remove_reward_idxs)
-    bt.logging.debug(f"challenge_miners() kept rewards: {rewards} | uids {uids}")
 
     bt.logging.trace("Applying challenge rewards")
 
     apply_reward_scores(
         self,
         uids,
-        responses,
         rewards,
-        timeout=self.config.neuron.timeout,
     )
 
     # Determine the best UID based on rewards

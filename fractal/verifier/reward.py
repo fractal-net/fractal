@@ -57,26 +57,49 @@ def envelope(known_blocks, ramp_up_blocks):
 
     return np.sqrt(known_blocks / ramp_up_blocks)
 
-
-def compute_reward(self, uid, verified, miner_stats):
+def weighted_sum(
+        challenge_success_rate, 
+        inference_success_rate, 
+        normalized_avg_response_time, 
+        normalized_avg_throughput):
     """ 
-    Computes the reward value for a given challenge.
-    Args:
-        verified (bool): A boolean indicating whether the challenge was successful.
-    Returns:
-        float: The computed reward value.
+    Computes the weighted sum of the normalized values.
     """
-    if not verified:
-        return 0.0
+    challenge_weight = 0.25
+    inference_weight = 0.25
+    response_time_weight = 0.10
+    throughput_weight = 0.40
+
+    challenge_component = challenge_weight * challenge_success_rate
+    inference_component = inference_weight * inference_success_rate
+    response_time_component = response_time_weight * normalized_avg_response_time
+    throughput_component = throughput_weight * normalized_avg_throughput
+
+    return challenge_component + inference_component + response_time_component + throughput_component
+
+
+
+def compute_reward(miner_stats):
+    """ 
+    Computes the reward value for a given inference or challenge.  
+    Takes miner stats, normalizes where necessary, and returns the weighted sum of the normalized values.
+    """
+
+    # TODO: is necessary? or too punitive?
+    # if not verified:
+    #     return 0.0
     
-    # Get the throughput and response time from the miner stats
+    challenge_success_rate = miner_stats.challenge_successes / miner_stats.challenge_attempts
+    inference_success_rate = miner_stats.inference_successes / miner_stats.inference_attempts
+    response_time = response_time_sigmoid(miner_stats.average_response_time)
+    throughput = throughput_sigmoid(miner_stats.average_throughput)
     
-    return 0.0
+    return weighted_sum(challenge_success_rate, inference_success_rate, response_time, throughput)
 
 
 
 def apply_reward_scores(
-    self, uids, responses, rewards, timeout: float 
+    self, uids, rewards
 ):
     """
     Adjusts the moving average scores for a set of UIDs based on their response times and reward values.
@@ -93,12 +116,10 @@ def apply_reward_scores(
         bt.logging.debug(f"Reward shape: {rewards.shape}")
         bt.logging.debug(f"UIDs: {uids}")
 
-    bt.logging.debug(f"apply_reward_scores() Scaled rewards: {scaled_rewards}")
-
     # Compute forward pass rewards
     # shape: [ metagraph.n ]
     scattered_rewards: torch.FloatTensor = self.scores.scatter(
-        0, torch.tensor(uids).to(self.device), scaled_rewards
+        0, torch.tensor(uids).to(self.device), rewards
     ).to(self.device)
     bt.logging.trace(f"Scattered rewards: {scattered_rewards}")
 

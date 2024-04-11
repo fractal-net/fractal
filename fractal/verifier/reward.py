@@ -19,6 +19,7 @@ import torch
 import hashlib
 import numpy as np
 import bittensor as bt
+from fractal.constants import RAMP_UP_BLOCKS
 
 def hashing_function(input):
     if input is None:
@@ -48,14 +49,17 @@ def throughput_sigmoid(throughput):
     denominator = 1 + (np.exp(b * h) - 2) * np.exp(-1 * b * throughput)
     return 1 - (numerator / denominator)
 
-def envelope(known_blocks, ramp_up_blocks): 
+def envelope(weighted_sum_value, current_block, miner_registered_block, ramp_up_blocks):
     """
     Envelope function to ramp up new miners
     """
-    if known_blocks > ramp_up_blocks:
-        return 1
 
-    return np.sqrt(known_blocks / ramp_up_blocks)
+    known_blocks = current_block - miner_registered_block
+
+    if known_blocks > ramp_up_blocks:
+        return 1 * weighted_sum_value
+
+    return np.sqrt(known_blocks / ramp_up_blocks) * weighted_sum_value
 
 def weighted_sum(
         challenge_success_rate, 
@@ -79,7 +83,7 @@ def weighted_sum(
 
 
 
-def compute_reward(miner_stats):
+def compute_reward(miner_stats, current_block):
     """ 
     Computes the reward value for a given inference or challenge.  
     Takes miner stats, normalizes where necessary, and returns the weighted sum of the normalized values.
@@ -93,8 +97,12 @@ def compute_reward(miner_stats):
     inference_success_rate = miner_stats.inference_successes / miner_stats.inference_attempts
     response_time = response_time_sigmoid(miner_stats.average_response_time)
     throughput = throughput_sigmoid(miner_stats.average_throughput)
+
+    miner_weighted_sum = weighted_sum(challenge_success_rate, inference_success_rate, response_time, throughput)
+
+    miner_registered_block = miner_stats.registered_block
     
-    return weighted_sum(challenge_success_rate, inference_success_rate, response_time, throughput)
+    return envelope(miner_weighted_sum, current_block, miner_registered_block, RAMP_UP_BLOCKS)
 
 
 

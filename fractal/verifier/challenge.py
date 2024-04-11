@@ -161,6 +161,12 @@ async def challenge_miners( self ):
         self.device
     )
 
+
+    # TODO: can current block be none, what do we do in this scenario
+    if current_block is None:
+        bt.logging.error("Failed to get current block. Returning early.")
+        return event
+
     for i, (verified, (response, uid)) in enumerate(responses):
         bt.logging.trace(
             f"Challenge iteration {i} uid {uid} response {str(response.completion)}"
@@ -178,9 +184,12 @@ async def challenge_miners( self ):
             response_time=response.dendrite.process_time,
         )
 
+
+
         # Apply reward for this challenge
         rewards[i] = compute_reward( 
             miner_stats,
+            self.block,
         )
 
         event.uids.append(uid)

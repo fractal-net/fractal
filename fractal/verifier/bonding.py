@@ -37,6 +37,7 @@ class Miner:
     total_successes: int
     average_response_time: float
     average_throughput: float
+    first_seen: int = 0
 
     def to_dict(self):
         return {
@@ -48,6 +49,7 @@ class Miner:
             "total_interval_successes": self.total_successes,
             "average_response_time": self.average_response_time,
             "average_throughput": self.average_throughput,
+            "first_seen": self.first_seen,
         }
 
     @staticmethod
@@ -61,10 +63,8 @@ class Miner:
             total_successes=data["total_successes"],
             average_response_time=data["average_response_time"],
             average_throughput=data["average_throughput"],
+            first_seen=data.get("first_seen", 0),
         )
-
-
-    
 
 
 async def reset_request_stats(stats_key: str, database: aioredis.Redis):
@@ -131,6 +131,7 @@ async def register_miner(ss58_address: str, database: aioredis.Redis, current_bl
             "total_successes": 0,
             "average_response_time": ESTIMATED_AVERAGE_RESPONSE_TIME,
             "average_throughput": ESTIMATED_AVERAGE_THROUGHPUT,
+            "first_seen": current_block,
         },
     )
 
@@ -193,6 +194,7 @@ async def update_statistics(
         "total_successes": int(miner_stats.get("total_successes", 0)),
         "average_response_time": float(miner_stats.get("average_response_time", 0.0)),
         "average_throughput": float(miner_stats.get("average_throughput", 0.0)),
+        "first_seen": int(miner_stats.get("first_seen", 0)),
     })
 
     return miner

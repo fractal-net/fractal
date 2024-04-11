@@ -164,8 +164,10 @@ async def update_statistics(
         await register_miner(ss58_address, database, current_block)
 
     # Update statistics in the stats hash
+    print("do we even get here 1 ?")
     stats_key = f"stats:{ss58_address}"
 
+    print("do we even get here 2 ?")
     total_attempts = await database.hincrby(stats_key, f"total_attempts", 1)
 
     if task_type in ["inference", "challenge"]:
@@ -176,41 +178,67 @@ async def update_statistics(
             # mark increase query type success count
             await database.hincrby(stats_key, f"{task_type}_successes", 1)
 
+    print("do we even get here 3 ?")
     # set the updated response time
     previous_response_time = await get_previous_average_response_time(
         ss58_address, database
     )
-    updated_response_time = (
-        previous_response_time * (total_attempts - 1) + response_time
-    ) / total_attempts
-    new_average_response_time = await database.hset(
+
+    print("do we even get here 4 ?")
+    
+
+    if total_attempts == 1:
+        updated_response_time = response_time
+    else:
+        updated_response_time = (
+            previous_response_time * (total_attempts - 1) + response_time
+        ) / total_attempts
+
+    
+    print("do we even get here 4.1 ?")
+    await database.hset(
         stats_key, "average_response_time", updated_response_time
     )
 
     # set the updated throughput
-    success_count = await database.get(f"stats:{ss58_address}:total_successes")
+    print("do we even get here 5 ?")
+    success_count = int(await database.hget(stats_key, f"total_successes"))
+    print("do we even get here 5.1 ?")
+    print("success_count", success_count)
+    print("total_attempts", total_attempts)
     accuracy_rate = success_count / total_attempts
-
-    new_throughput = accuracy_rate / new_average_response_time
+    print("do we even get here 5.2 ?")
+    new_throughput = accuracy_rate / updated_response_time
+    print("do we even get here 5.3 ?")
 
     await database.hset(stats_key, "average_throughput", new_throughput)
 
+    print("do we even get here 6?")
+
     miner_stats = await database.hgetall(stats_key)
+    print("do we even get here 7 ?")
+    print("000000000000")
+    print(miner_stats)
+    print("000000000000")
+
+    # TODO: fix to resonable values as defaults
+
     miner = Miner.from_dict(
         {
-            "inference_attempts": int(miner_stats.get("inference_attempts", 0)),
-            "inference_successes": int(miner_stats.get("inference_successes", 0)),
-            "challenge_attempts": int(miner_stats.get("challenge_attempts", 0)),
-            "challenge_successes": int(miner_stats.get("challenge_successes", 0)),
-            "total_attempts": int(miner_stats.get("total_attempts", 0)),
-            "total_successes": int(miner_stats.get("total_successes", 0)),
+            "inference_attempts": int(miner_stats.get(b"inference_attempts", b"0")),
+            "inference_successes": int(miner_stats.get(b"inference_successes", b"0")),
+            "challenge_attempts": int(miner_stats.get(b"challenge_attempts", b"0")),
+            "challenge_successes": int(miner_stats.get(b"challenge_successes", b"0")),
+            "total_attempts": int(miner_stats.get(b"total_attempts", b"0")),
+            "total_successes": int(miner_stats.get(b"total_successes", b"0")),
             "average_response_time": float(
-                miner_stats.get("average_response_time", 0.0)
+                miner_stats.get(b"average_response_time", b"0.0")
             ),
-            "average_throughput": float(miner_stats.get("average_throughput", 0.0)),
-            "first_seen": int(miner_stats.get("first_seen", 0)),
+            "average_throughput": float(miner_stats.get(b"average_throughput", b"0.0")),
+            "first_seen": int(miner_stats.get(b"first_seen", b"0")),
         }
     )
+    print("do we even get here 8 ?")
 
     return miner
 

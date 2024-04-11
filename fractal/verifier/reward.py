@@ -48,7 +48,7 @@ def throughput_sigmoid(throughput):
     h = 1.0
     numerator = 1 - np.exp(-1 * b * throughput)
     denominator = 1 + (np.exp(b * h) - 2) * np.exp(-1 * b * throughput)
-    return 1 - (numerator / denominator)
+    return (numerator / denominator)
 
 
 def envelope(weighted_sum_value, current_block, miner_registered_block, ramp_up_blocks):
@@ -74,9 +74,9 @@ def weighted_sum(
     Computes the weighted sum of the normalized values.
     """
     challenge_weight = 0.25
-    inference_weight = 0.25
+    inference_weight = 0.30
     response_time_weight = 0.10
-    throughput_weight = 0.40
+    throughput_weight = 0.35
 
     challenge_component = challenge_weight * challenge_success_rate
     inference_component = inference_weight * inference_success_rate
@@ -97,16 +97,15 @@ def compute_reward(miner_stats, current_block):
     Takes miner stats, normalizes where necessary, and returns the weighted sum of the normalized values.
     """
 
-    # TODO: is necessary? or too punitive?
-    # if not verified:
-    #     return 0.0
-
     challenge_success_rate = (
         miner_stats.challenge_successes / miner_stats.challenge_attempts
+        if miner_stats.challenge_attempts > 0 else 0
     )
     inference_success_rate = (
         miner_stats.inference_successes / miner_stats.inference_attempts
+        if miner_stats.inference_attempts > 0 else 0
     )
+
     response_time = response_time_sigmoid(miner_stats.average_response_time)
     throughput = throughput_sigmoid(miner_stats.average_throughput)
 
@@ -114,7 +113,7 @@ def compute_reward(miner_stats, current_block):
         challenge_success_rate, inference_success_rate, response_time, throughput
     )
 
-    miner_registered_block = miner_stats.registered_block
+    miner_registered_block = miner_stats.first_seen
 
     return envelope(
         miner_weighted_sum, current_block, miner_registered_block, RAMP_UP_BLOCKS
@@ -140,7 +139,7 @@ def apply_reward_scores(self, uids, rewards):
     # Compute forward pass rewards
     # shape: [ metagraph.n ]
     scattered_rewards: torch.FloatTensor = self.scores.scatter(
-        0, torch.tensor(uids).to(self.device), rewards
+        0, uids.to(self.device), rewards
     ).to(self.device)
     bt.logging.trace(f"Scattered rewards: {scattered_rewards}")
 

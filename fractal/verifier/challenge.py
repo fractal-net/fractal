@@ -96,8 +96,27 @@ def generate_challenge(self):
     char_pool = string.ascii_letters + string.digits
     return "".join(random.choice(char_pool) for i in range(length))
 
+def get_prompt_and_seed(): 
+    prompt = generate_challenge(self)
+    seed = random.randint(1, 2**32 - 1)
+
+    sampling_params = protocol.ChallengeSamplingParams(
+        seed=seed,
+    )
+
+    return prompt, sampling_params
+
+
+
 
 async def challenge_miners(self):
+    print("CHANLLENGE MINERS")
+    print("CHANLLENGE MINERS")
+    print("CHANLLENGE MINERS")
+    print("CHANLLENGE MINERS")
+    print("CHANLLENGE MINERS")
+    print("CHANLLENGE MINERS")
+    print("CHANLLENGE MINERS")
     # --- Create the event
     event = EventSchema(
         task_name="challenge",
@@ -105,7 +124,7 @@ async def challenge_miners(self):
         completion_times=[],
         task_status_messages=[],
         task_status_codes=[],
-        block=self.subtensor.get_current_block(),
+        block=self.block,
         uids=[],
         step_length=0.0,
         best_uid=-1,
@@ -158,40 +177,57 @@ async def challenge_miners(self):
         self.device
     )
 
-    # TODO: can current block be none, what do we do in this scenario
-    if current_block is None:
-        bt.logging.error("Failed to get current block. Returning early.")
-        return event
 
+    print(len(responses))
+    print(len(responses))
+    print(len(responses))
+    print(len(responses))
     for i, (verified, (response, uid)) in enumerate(responses):
-        bt.logging.trace(
-            f"Challenge iteration {i} uid {uid} response {str(response.completion)}"
-        )
+        try:
+            print(f"Processing response {i+1}/{len(responses)}")
+            bt.logging.trace(
+                f"Challenge iteration {i} uid {uid}"
+            )
 
-        hotkey = self.metagraph.hotkeys[uid]
+            hotkey = self.metagraph.hotkeys[uid]
 
-        # Update the challenge statistics
-        miner_stats = await update_statistics(
-            ss58_address=hotkey,
-            success=verified,
-            task_type="challenge",
-            database=self.database,
-            current_block=self.block,
-            response_time=response.dendrite.process_time,
-        )
+            response_time = response.dendrite.process_time or 60.0
+            print("=================================")
+            print(response_time)
+            print("=================================")
 
-        # Apply reward for this challenge
-        rewards[i] = compute_reward(
-            miner_stats,
-            self.block,
-        )
+            # Update the challenge statistics
+            try: 
+                miner_stats = await update_statistics(
+                    ss58_address=hotkey,
+                    success=verified,
+                    task_type="challenge",
+                    database=self.database,
+                    current_block=self.block,
+                    response_time=response_time,
+                )
+                print("=================================")
+                print(miner_stats)
+                print("=================================")
+            except Exception as e:
+                bt.logging.error(f"Error updating statistics: {e}")
+                continue
 
-        event.uids.append(uid)
-        event.successful.append(verified)
-        event.completion_times.append(response.dendrite.process_time)
-        event.task_status_messages.append(response.dendrite.status_message)
-        event.task_status_codes.append(response.dendrite.status_code)
-        event.rewards.append(rewards[i].item())
+            # Apply reward for this challenge
+            rewards[i] = compute_reward(
+                miner_stats,
+                self.block,
+            )
+
+            event.uids.append(uid)
+            event.successful.append(verified)
+            event.completion_times.append(response.dendrite.process_time)
+            event.task_status_messages.append(response.dendrite.status_message)
+            event.task_status_codes.append(response.dendrite.status_code)
+            event.rewards.append(rewards[i].item())
+        except Exception as e:
+            bt.logging.error(f"Error processing response: {e}")
+            continue
 
     bt.logging.debug(
         f"challenge_miners() rewards: {rewards} | uids {uids} hotkeys {[self.metagraph.hotkeys[uid] for uid in uids]}"

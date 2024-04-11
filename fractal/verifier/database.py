@@ -24,7 +24,6 @@ import bittensor as bt
 from typing import Dict, List, Any, Union, Optional, Tuple
 
 
-
 async def get_metadata_for_hotkey_and_hash(
     ss58_address: str, data_hash: str, database: aioredis.Redis, verbose: bool = False
 ) -> Optional[Dict[str, Any]]:
@@ -53,6 +52,7 @@ async def get_metadata_for_hotkey_and_hash(
         bt.logging.trace(f"No metadata found for {data_hash} in hash {ss58_address}.")
         return None
 
+
 async def total_hotkey_requests(
     hotkey: str, database: aioredis.Redis, verbose: bool = False
 ) -> int:
@@ -75,7 +75,9 @@ async def total_hotkey_requests(
         )
         if metadata:
             # Add the number of requests to the total
-            total_requests += (metadata["inference_attempts"] + metadata["challenge_attempts"])
+            total_requests += (
+                metadata["inference_attempts"] + metadata["challenge_attempts"]
+            )
     return total_requests
 
 
@@ -108,15 +110,11 @@ async def hotkey_at_capacity(
         return False
     if total_requests >= limit:
         if verbose:
-            bt.logging.trace(
-                f"Hotkey {hotkey} is at max capacity {limit} Req."
-            )
+            bt.logging.trace(f"Hotkey {hotkey} is at max capacity {limit} Req.")
         return True
     else:
         if verbose:
-            bt.logging.trace(
-                f"Hotkey {hotkey} has {(limit - total_requests)} free."
-            )
+            bt.logging.trace(f"Hotkey {hotkey} has {(limit - total_requests)} free.")
         return False
 
 
@@ -175,15 +173,11 @@ async def check_hotkeys_capacity(hotkeys_capacity, hotkey: str, verbose: bool = 
 
     if total_requests >= limit:
         if verbose:
-            bt.logging.trace(
-                f"Hotkey {hotkey} is at max capacity {limit} Req."
-            )
+            bt.logging.trace(f"Hotkey {hotkey} is at max capacity {limit} Req.")
         return True
     else:
         if verbose:
-            bt.logging.trace(
-                f"Hotkey {hotkey} has {(limit - total_requests)} free."
-            )
+            bt.logging.trace(f"Hotkey {hotkey} has {(limit - total_requests)} free.")
         return False
 
 
@@ -204,6 +198,7 @@ async def total_verifier_requests(database: aioredis.Redis) -> int:
         if total_successes is not None:
             total_requests += int(total_successes)
     return total_requests
+
 
 async def get_prover_statistics(database: aioredis.Redis) -> Dict[str, Dict[str, str]]:
     """
@@ -254,4 +249,3 @@ async def get_redis_db_size(database: aioredis.Redis) -> int:
         if size:
             total_size += size
     return total_size
-

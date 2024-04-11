@@ -20,11 +20,11 @@
 import string
 import random
 
+
 def generate_strong_password(length=32):
     all_characters = string.ascii_letters + string.digits
-    password = ''.join(random.choice(all_characters) for i in range(length))
+    password = "".join(random.choice(all_characters) for i in range(length))
     return password
-
 
 
 if __name__ == "__main__":

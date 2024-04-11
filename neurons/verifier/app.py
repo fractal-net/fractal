@@ -18,7 +18,7 @@
 
 
 import time
-import sys 
+import sys
 import os
 import bittensor as bt
 
@@ -41,17 +41,17 @@ class Verifier(BaseVerifierNeuron):
         self.load_state()
         for i, axon in enumerate(self.metagraph.axons):
             bt.logging.info(f"axons[{i}]: {axon}")
-            check_uid_availability(self.metagraph, i, self.config.neuron.vpermit_tao_limit)
+            check_uid_availability(
+                self.metagraph, i, self.config.neuron.vpermit_tao_limit
+            )
 
         # inference client
         self.client = HttpClient(self.config.neuron.model_endpoint)
 
-        # --- Block 
+        # --- Block
         self.last_interval_block = self.get_last_adjustment_block()
         self.adjustment_interval = self.get_adjustment_interval()
         self.next_adjustment_block = self.last_interval_block + self.adjustment_interval
-
-
 
     async def forward(self):
         """
@@ -63,17 +63,16 @@ class Verifier(BaseVerifierNeuron):
         - Updating the scores
         """
         print("forward()")
-    
+
         return await forward(self)
 
     def __enter__(self):
-        
         if self.config.no_background_thread:
             bt.logging.warning("Running verifier in main thread.")
             self.run()
         else:
             self.run_in_background_thread()
-    
+
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
@@ -95,6 +94,7 @@ class Verifier(BaseVerifierNeuron):
             self.thread.join(5)
             self.is_running = False
             bt.logging.debug("Stopped")
+
 
 # The main function parses the configuration and runs the verifier.
 if __name__ == "__main__":

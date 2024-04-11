@@ -42,17 +42,16 @@ def check_uid_availability(
     if metagraph.validator_permit[uid]:
         bt.logging.debug(f"uid: {uid} has verifier permit")
         if metagraph.S[uid] > vpermit_tao_limit:
-            bt.logging.debug(f"uid: {uid} has stake ({metagraph.S[uid]}) > {vpermit_tao_limit}")
+            bt.logging.debug(
+                f"uid: {uid} has stake ({metagraph.S[uid]}) > {vpermit_tao_limit}"
+            )
             return False
 
     # Available otherwise.
     return True
 
 
-
-def get_random_uids(
-    self, k: int, exclude: List[int] = None
-) -> torch.LongTensor:
+def get_random_uids(self, k: int, exclude: List[int] = None) -> torch.LongTensor:
     """Returns k available random uids from the metagraph.
     Args:
         k (int): Number of uids to return.
@@ -87,5 +86,3 @@ def get_random_uids(
         )
     uids = torch.tensor(random.sample(available_uids, k))
     return uids
-
-

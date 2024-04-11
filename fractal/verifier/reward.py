@@ -21,13 +21,13 @@ import numpy as np
 import bittensor as bt
 from fractal.constants import RAMP_UP_BLOCKS
 
+
 def hashing_function(input):
     if input is None:
-        return '0000000000000000000000000000000000000000000000000000000000000000'
-    hashed_input = hashlib.sha256(input.encode('utf-8')).hexdigest()
+        return "0000000000000000000000000000000000000000000000000000000000000000"
+    hashed_input = hashlib.sha256(input.encode("utf-8")).hexdigest()
     return hashed_input
 
-    
 
 def response_time_sigmoid(response_time):
     """
@@ -39,6 +39,7 @@ def response_time_sigmoid(response_time):
     denominator = 1 + (np.exp(b * h) - 2) * np.exp(-1 * b * response_time)
     return 1 - (numerator / denominator)
 
+
 def throughput_sigmoid(throughput):
     """
     Sigmoid function to normalize throughput.
@@ -48,6 +49,7 @@ def throughput_sigmoid(throughput):
     numerator = 1 - np.exp(-1 * b * throughput)
     denominator = 1 + (np.exp(b * h) - 2) * np.exp(-1 * b * throughput)
     return 1 - (numerator / denominator)
+
 
 def envelope(weighted_sum_value, current_block, miner_registered_block, ramp_up_blocks):
     """
@@ -61,12 +63,14 @@ def envelope(weighted_sum_value, current_block, miner_registered_block, ramp_up_
 
     return np.sqrt(known_blocks / ramp_up_blocks) * weighted_sum_value
 
+
 def weighted_sum(
-        challenge_success_rate, 
-        inference_success_rate, 
-        normalized_avg_response_time, 
-        normalized_avg_throughput):
-    """ 
+    challenge_success_rate,
+    inference_success_rate,
+    normalized_avg_response_time,
+    normalized_avg_throughput,
+):
+    """
     Computes the weighted sum of the normalized values.
     """
     challenge_weight = 0.25
@@ -79,36 +83,45 @@ def weighted_sum(
     response_time_component = response_time_weight * normalized_avg_response_time
     throughput_component = throughput_weight * normalized_avg_throughput
 
-    return challenge_component + inference_component + response_time_component + throughput_component
-
+    return (
+        challenge_component
+        + inference_component
+        + response_time_component
+        + throughput_component
+    )
 
 
 def compute_reward(miner_stats, current_block):
-    """ 
-    Computes the reward value for a given inference or challenge.  
+    """
+    Computes the reward value for a given inference or challenge.
     Takes miner stats, normalizes where necessary, and returns the weighted sum of the normalized values.
     """
 
     # TODO: is necessary? or too punitive?
     # if not verified:
     #     return 0.0
-    
-    challenge_success_rate = miner_stats.challenge_successes / miner_stats.challenge_attempts
-    inference_success_rate = miner_stats.inference_successes / miner_stats.inference_attempts
+
+    challenge_success_rate = (
+        miner_stats.challenge_successes / miner_stats.challenge_attempts
+    )
+    inference_success_rate = (
+        miner_stats.inference_successes / miner_stats.inference_attempts
+    )
     response_time = response_time_sigmoid(miner_stats.average_response_time)
     throughput = throughput_sigmoid(miner_stats.average_throughput)
 
-    miner_weighted_sum = weighted_sum(challenge_success_rate, inference_success_rate, response_time, throughput)
+    miner_weighted_sum = weighted_sum(
+        challenge_success_rate, inference_success_rate, response_time, throughput
+    )
 
     miner_registered_block = miner_stats.registered_block
-    
-    return envelope(miner_weighted_sum, current_block, miner_registered_block, RAMP_UP_BLOCKS)
+
+    return envelope(
+        miner_weighted_sum, current_block, miner_registered_block, RAMP_UP_BLOCKS
+    )
 
 
-
-def apply_reward_scores(
-    self, uids, rewards
-):
+def apply_reward_scores(self, uids, rewards):
     """
     Adjusts the moving average scores for a set of UIDs based on their response times and reward values.
 
@@ -141,4 +154,3 @@ def apply_reward_scores(
     self.scores = (self.scores - self.config.neuron.decay_alpha).clamp(min=0)
 
     bt.logging.trace(f"Updated moving avg scores: {self.scores}")
-

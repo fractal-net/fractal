@@ -17,7 +17,7 @@
 # DEALINGS IN THE SOFTWARE.
 
 import time
-import sys 
+import sys
 import os
 import typing
 import bittensor as bt
@@ -25,6 +25,7 @@ import bittensor as bt
 from fractal.base.prover import BaseProverNeuron
 from fractal.base.client import HttpClient
 from fractal.protocol import Inference, Challenge
+
 
 class Prover(BaseProverNeuron):
     """
@@ -39,9 +40,7 @@ class Prover(BaseProverNeuron):
         super(Prover, self).__init__(config=config)
         self.client = HttpClient(self.config.neuron.model_endpoint)
 
-    async def inference_request(
-            self, synapse: Inference
-    ):
+    async def inference_request(self, synapse: Inference):
         """
         Sends an inference request to the prover's model endpoint.
 
@@ -61,10 +60,7 @@ class Prover(BaseProverNeuron):
 
         return synapse
 
-
-    async def challenge_request(
-            self, synapse: Challenge
-    ):
+    async def challenge_request(self, synapse: Challenge):
         """
         Sends an inference request to the prover's model endpoint.
 
@@ -85,9 +81,7 @@ class Prover(BaseProverNeuron):
 
         return synapse
 
-    async def forward(
-        self, synapse: Challenge
-    ) -> Challenge:
+    async def forward(self, synapse: Challenge) -> Challenge:
         """
         Processes the incoming synapse by performing a predefined operation on the input data.
 
@@ -102,12 +96,10 @@ class Prover(BaseProverNeuron):
         """
         if isinstance(synapse, Inference):
             return await self.inference_request(synapse)
-    
+
         return await self.challenge_request(synapse)
 
-    async def blacklist(
-        self, synapse: Challenge
-    ) -> typing.Tuple[bool, str]:
+    async def blacklist(self, synapse: Challenge) -> typing.Tuple[bool, str]:
         """
         Determines whether an incoming request should be blacklisted and thus ignored. Your implementation should
         define the logic for blacklisting requests based on your needs and desired security parameters.

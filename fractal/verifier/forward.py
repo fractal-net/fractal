@@ -25,6 +25,7 @@ from fractal.verifier.state import log_event
 from fractal.verifier.challenge import challenge_miners
 from fractal.verifier.database import get_prover_statistics, total_verifier_requests
 
+
 def subscribe_to_next_block(self):
     """
     Subscribes to block headers and waits for the next block.
@@ -37,6 +38,7 @@ def subscribe_to_next_block(self):
         self.subscription_substrate.subscribe_block_headers(subscription_id)
 
     return future
+
 
 async def forward(self):
     """
@@ -80,7 +82,3 @@ async def forward(self):
     if sleep_time > 0:
         bt.logging.info(f"Sleeping for {sleep_time} seconds")
         await asyncio.sleep(sleep_time)
-    
-
-
-

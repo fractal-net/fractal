@@ -21,26 +21,29 @@ import bittensor as bt
 import random
 from typing import List, Optional
 
+
 class InferenceeSamplingParams(pydantic.BaseModel):
-    '''
+    """
     SamplingParams is a pydantic model that represents the sampling parameters for the model
-    '''
+    """
+
     seed: int = pydantic.Field(
         default_factory=lambda: random.randint(0, 2**31 - 1),
         title="Seed",
         description="The seed used to generate the output.",
     )
+
 
 class ChallengeSamplingParams(pydantic.BaseModel):
-    '''
+    """
     SamplingParams is a pydantic model that represents the sampling parameters for the model
-    '''
+    """
+
     seed: int = pydantic.Field(
         default_factory=lambda: random.randint(0, 2**31 - 1),
         title="Seed",
         description="The seed used to generate the output.",
     )
-
 
 
 class Inference(bt.Synapse):
@@ -68,6 +71,7 @@ class Inference(bt.Synapse):
     Note: While you can directly use the `Challenge` class, it's designed to be extensible. Thus, you can create
     subclasses to further customize behavior for specific prompting scenarios or requirements.
     """
+
     query: str = pydantic.Field(
         ...,
         title="Query",
@@ -118,6 +122,7 @@ class Challenge(bt.Synapse):
     Note: While you can directly use the `Challenge` class, it's designed to be extensible. Thus, you can create
     subclasses to further customize behavior for specific prompting scenarios or requirements.
     """
+
     query: str = pydantic.Field(
         ...,
         title="Query",
@@ -142,5 +147,3 @@ class Challenge(bt.Synapse):
         description="A list of fields that are required for the hash.",
         allow_mutation=False,
     )
-
-  

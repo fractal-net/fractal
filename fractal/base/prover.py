@@ -35,16 +35,15 @@ class BaseProverNeuron(BaseNeuron):
     """
     Base class for Bittensor provers.
     """
+
     @classmethod
     def add_args(cls, parser: argparse.ArgumentParser):
-        super().add_args(parser)  
-        add_prover_args(cls, parser)    
-
+        super().add_args(parser)
+        add_prover_args(cls, parser)
 
     def __init__(self, config=None):
         super().__init__(config=config)
 
-        
         # Warn if allowing incoming requests from anyone.
         if not self.config.blacklist.force_verifier_permit:
             bt.logging.warning(
@@ -65,12 +64,12 @@ class BaseProverNeuron(BaseNeuron):
             blacklist_fn=self.blacklist,
             priority_fn=self.priority,
         )
-        bt.logging.info(f"Axon created: {self.axon}")      
+        bt.logging.info(f"Axon created: {self.axon}")
 
         try:
             self.loop = asyncio.get_event_loop()
         except RuntimeError as e:
-            if str(e).startswith('There is no current event loop in thread'):
+            if str(e).startswith("There is no current event loop in thread"):
                 self.loop = asyncio.new_event_loop()
                 asyncio.set_event_loop(self.loop)
             else:
@@ -81,7 +80,6 @@ class BaseProverNeuron(BaseNeuron):
         self.is_running: bool = False
         self.thread: threading.Thread = None
         self.lock = asyncio.Lock()
-
 
     def run(self):
         """
@@ -121,13 +119,15 @@ class BaseProverNeuron(BaseNeuron):
         # change the config in the axon
         log_level = "trace" if bt.logging.__trace_on__ else "critical"
         fast_config = uvicorn.Config(
-            self.axon.app, host="0.0.0.0", port=self.config.axon.port, log_level=log_level, loop="asyncio"
+            self.axon.app,
+            host="0.0.0.0",
+            port=self.config.axon.port,
+            log_level=log_level,
+            loop="asyncio",
         )
         self.axon.fast_server = FastAPIThreadedServer(config=fast_config)
 
         self.axon.start()
-
-
 
         bt.logging.info(f"Prover starting at block: {self.block}")
 
@@ -215,7 +215,6 @@ class BaseProverNeuron(BaseNeuron):
             Exception: If there's an error while setting weights, the exception is logged for diagnosis.
         """
         pass
-    
 
     def resync_metagraph(self):
         """Resyncs the metagraph and updates the hotkeys and moving averages based on the new metagraph."""
@@ -229,7 +228,5 @@ class BaseProverNeuron(BaseNeuron):
             self.autoupdate(self.config.autoupdate.branch)
         return True
 
-    
     def load_state(self):
         return True
-    

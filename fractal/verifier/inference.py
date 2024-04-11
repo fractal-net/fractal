@@ -24,15 +24,16 @@ from fractal import protocol
 from fractal.utils.uids import get_tiered_uids
 from fractal.verifier.event import EventSchema
 
+
 async def handle_inference(
-        self, 
-        private_input: typing.Dict[str,str], 
-        sampling_params: protocol.InferenceeSamplingParams, 
-        uid: int
-    ):
+    self,
+    private_input: typing.Dict[str, str],
+    sampling_params: protocol.InferenceeSamplingParams,
+    uid: int,
+):
     synapse = protocol.Challenge(
-        sources = [private_input["sources"]],
-        query = private_input["query"],
+        sources=[private_input["sources"]],
+        query=private_input["query"],
         sampling_params=sampling_params,
     )
 
@@ -44,13 +45,11 @@ async def handle_inference(
     ):
         print(token)
 
-
     return None
 
-async def inference_data(
-        self
-)-> typing.Tuple[bytes, typing.Callable]:
-    """ Returns the data and a callback to be used for inference. """
+
+async def inference_data(self) -> typing.Tuple[bytes, typing.Callable]:
+    """Returns the data and a callback to be used for inference."""
 
     event = EventSchema(
         task_name="inference",
@@ -76,6 +75,3 @@ async def inference_data(
         tasks.append(asyncio.create_task(handle_inference(self, uid)))
     response_tuples = await asyncio.gather(*tasks)
     return event
-
-
-

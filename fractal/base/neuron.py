@@ -60,8 +60,9 @@ class BaseNeuron(ABC):
     @property
     def block(self):
         return ttl_get_block(self)
+
     def autoupdate(self, branch: str = "main"):
-        '''
+        """
         Automatically updates the Fractal codebase to the latest version available.
 
         This function checks the remote repository for the latest version of Fractal by fetching the VERSION file from the main branch.
@@ -73,15 +74,17 @@ class BaseNeuron(ABC):
         - It requires git to be installed and accessible from the command line.
         - The function will restart the application using the same command-line arguments it was originally started with.
         - If the update fails, manual intervention is required to resolve the issue and restart the application.
-        '''
+        """
         bt.logging.info("Checking for updates...")
         try:
             response = requests.get(
                 "https://raw.githubusercontent.com/fractal-net/fractal/main/VERSION",
-                headers={'Cache-Control': 'no-cache'}
+                headers={"Cache-Control": "no-cache"},
             )
             response.raise_for_status()
-            repo_version = response.content.decode().strip()  # Remove trailing newline characters
+            repo_version = (
+                response.content.decode().strip()
+            )  # Remove trailing newline characters
             latest_version = [int(v) for v in repo_version.split(".")]
             local_version = [int(v) for v in fractal.__version__.split(".")]
 
@@ -109,9 +112,6 @@ class BaseNeuron(ABC):
         except Exception as e:
             bt.logging.error(f"Update check failed: {e}")
 
-
-
-
     def __init__(self, config=None):
         base_config = copy.deepcopy(config or BaseNeuron._config())
         self.config = self._config()
@@ -121,17 +121,15 @@ class BaseNeuron(ABC):
         # Set up logging with the provided configuration and directory.
         bt.logging(config=self.config, logging_dir=self.config.full_path)
 
-
         # Log the configuration for reference.
         bt.logging.info(self.config)
-        
+
         self.device = torch.device(self.config.neuron.device)
 
         self.restart_required = False
 
         if not self.config.disable_autoupdate:
             self.autoupdate(self.config.autoupdate.branch)
-
 
         # Build Bittensor objects
         # These are core Bittensor classes to interact with the network.
@@ -155,7 +153,6 @@ class BaseNeuron(ABC):
             f"Running neuron on subnet: {self.config.netuid} with uid {self.uid} using network: {self.subtensor.chain_endpoint}"
         )
         self.step = 0
-        
 
     @abstractmethod
     async def forward(self, synapse: bt.Synapse) -> bt.Synapse:
@@ -165,15 +162,17 @@ class BaseNeuron(ABC):
     def run(self):
         ...
 
-
     def get_last_adjustment_block(self) -> int:
         with self.subtensor.substrate as substrate:
-            return substrate.query('SubtensorModule', 'LastAdjustmentBlock', [self.config.netuid]).value
-    
+            return substrate.query(
+                "SubtensorModule", "LastAdjustmentBlock", [self.config.netuid]
+            ).value
+
     def get_adjustment_interval(self) -> int:
         with self.subtensor.substrate as substrate:
-            return substrate.query('SubtensorModule', 'AdjustmentInterval', [self.config.netuid]).value
-
+            return substrate.query(
+                "SubtensorModule", "AdjustmentInterval", [self.config.netuid]
+            ).value
 
     def sync(self):
         """

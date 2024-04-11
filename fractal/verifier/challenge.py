@@ -28,24 +28,14 @@ from fractal import protocol
 from fractal.verifier.event import EventSchema
 from fractal.utils.uids import get_random_uids
 from fractal.verifier.bonding import update_statistics
-from fractal.verifier.reward import hashing_function, apply_reward_scores, compute_reward
+from fractal.verifier.reward import (
+    hashing_function,
+    apply_reward_scores,
+    compute_reward,
+)
 
 
-def _filter_verified_responses(uids, responses):
-    not_none_responses = [
-        (uid, response[0])
-        for (uid, (verified, response)) in zip(uids, responses)
-        if verified != None
-    ]
-
-    if len(not_none_responses) == 0:
-        return (), ()
-
-    uids, responses = zip(*not_none_responses)
-    return uids, responses
-
-def verify( self, output, ground_truth_hash):
-
+def verify(output, ground_truth_hash):
     output_hash = hashing_function(output)
     if not output_hash == ground_truth_hash:
         bt.logging.debug(
@@ -59,7 +49,13 @@ def verify( self, output, ground_truth_hash):
     return True
 
 
-async def handle_challenge( self, uid: int, private_input: typing.Dict, ground_truth_hash: str, sampling_params: protocol.ChallengeSamplingParams ) -> typing.Tuple[bool, protocol.Challenge]:
+async def handle_challenge(
+    self,
+    uid: int,
+    private_input: typing.Dict,
+    ground_truth_hash: str,
+    sampling_params: protocol.ChallengeSamplingParams,
+) -> typing.Tuple[bool, protocol.Challenge]:
     """
     Handles a challenge sent to a prover and verifies the response.
 
@@ -75,7 +71,7 @@ async def handle_challenge( self, uid: int, private_input: typing.Dict, ground_t
     bt.logging.trace(f"{len(keys)} stats pulled for hotkey {hotkey}")
 
     synapse = protocol.Challenge(
-        query = private_input["query"],
+        query=private_input["query"],
         sampling_params=sampling_params,
     )
 
@@ -87,25 +83,21 @@ async def handle_challenge( self, uid: int, private_input: typing.Dict, ground_t
     )
 
     output = response.completion
-        
-    # if output is None, None is passed to verify, and None check is performed in hashing_function
-    verified = verify( self, output, ground_truth_hash )
 
-    output_tup = (
-        response,
-        uid
-    )
+    # if output is None, None is passed to verify, and None check is performed in hashing_function
+    verified = verify(output, ground_truth_hash)
+
+    output_tup = (response, uid)
     return verified, output_tup
 
 
-def generate_challenge( self ):
+def generate_challenge(self):
     length = self.config.neuron.challenge_size or 100
     char_pool = string.ascii_letters + string.digits
-    return ''.join(random.choice(char_pool) for i in range(length))
+    return "".join(random.choice(char_pool) for i in range(length))
 
 
-async def challenge_miners( self ):
-    
+async def challenge_miners(self):
     # --- Create the event
     event = EventSchema(
         task_name="challenge",
@@ -123,9 +115,9 @@ async def challenge_miners( self ):
         moving_averaged_scores=None,
     )
 
-    # --- choose a query 
+    # --- choose a query
     prompt = generate_challenge(self)
-    private_input = {'query': prompt}
+    private_input = {"query": prompt}
     seed = random.randint(1, 2**32 - 1)
 
     sampling_params = protocol.ChallengeSamplingParams(
@@ -134,7 +126,7 @@ async def challenge_miners( self ):
 
     # --- Generate the ground truth output
     # TODO: is returning early here the right thing to do?
-    ground_truth_output = await self.client.generate(prompt, seed) 
+    ground_truth_output = await self.client.generate(prompt, seed)
     await self.client.close_session()
     if ground_truth_output is None:
         bt.logging.error("Failed to generate ground truth output.")
@@ -147,20 +139,24 @@ async def challenge_miners( self ):
     tasks = []
 
     # --- Choose n random miners
-    uids = get_random_uids( self, k=self.config.neuron.sample_size )
+    uids = get_random_uids(self, k=self.config.neuron.sample_size)
 
     # --- query n random miners
     bt.logging.debug(f"challenge uids {uids}")
     responses = []
     for uid in uids:
-        tasks.append(asyncio.create_task(handle_challenge(self, uid, private_input, ground_truth_hash, sampling_params)))
+        tasks.append(
+            asyncio.create_task(
+                handle_challenge(
+                    self, uid, private_input, ground_truth_hash, sampling_params
+                )
+            )
+        )
     responses = await asyncio.gather(*tasks)
-
 
     rewards: torch.FloatTensor = torch.zeros(len(responses), dtype=torch.float32).to(
         self.device
     )
-
 
     # TODO: can current block be none, what do we do in this scenario
     if current_block is None:
@@ -184,10 +180,8 @@ async def challenge_miners( self ):
             response_time=response.dendrite.process_time,
         )
 
-
-
         # Apply reward for this challenge
-        rewards[i] = compute_reward( 
+        rewards[i] = compute_reward(
             miner_stats,
             self.block,
         )
@@ -210,9 +204,7 @@ async def challenge_miners( self ):
         return event
 
     # Remove UIDs without hashes (don't punish new miners that have no challenges yet)
-    bt.logging.debug(
-        f"challenge_miners() rewards: {rewards} | uids {uids}"
-    )
+    bt.logging.debug(f"challenge_miners() rewards: {rewards} | uids {uids}")
 
     bt.logging.trace("Applying challenge rewards")
 
@@ -227,5 +219,5 @@ async def challenge_miners( self ):
         best_index = max(range(len(event.rewards)), key=event.rewards.__getitem__)
         event.best_uid = event.uids[best_index]
         event.best_hotkey = self.metagraph.hotkeys[event.best_uid]
-    
+
     return event

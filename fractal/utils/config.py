@@ -37,7 +37,7 @@ def check_config(cls, config: "bt.Config"):
             config.neuron.name,
         )
     )
-    bt.logging.info(f'Logging path: {full_path}')
+    bt.logging.info(f"Logging path: {full_path}")
     config.neuron.full_path = os.path.expanduser(full_path)
     if not os.path.exists(config.neuron.full_path):
         os.makedirs(config.neuron.full_path, exist_ok=True)
@@ -91,7 +91,7 @@ def add_args(cls, parser):
         help="If set, we dont save events to a log file.",
         default=False,
     )
-    
+
     parser.add_argument(
         "--neuron.log_full",
         action="store_true",
@@ -107,7 +107,7 @@ def add_args(cls, parser):
     )
 
     parser.add_argument(
-        '--autoupdate.branch',
+        "--autoupdate.branch",
         type=str,
         help="The branch to auto-update from.",
         default="main",
@@ -121,7 +121,7 @@ def add_prover_args(cls, parser):
         "--neuron.name",
         type=str,
         help="Trials for this neuron go in neuron.root / (wallet_cold - wallet_hot) / neuron.name. ",
-        default='prover',
+        default="prover",
     )
 
     parser.add_argument(
@@ -152,6 +152,7 @@ def add_prover_args(cls, parser):
         default="http://127.0.0.1:8080",
     )
 
+
 def add_verifier_args(cls, parser):
     """Add verifier specific arguments to the parser."""
 
@@ -159,7 +160,7 @@ def add_verifier_args(cls, parser):
         "--neuron.name",
         type=str,
         help="Trials for this neuron go in neuron.root / (wallet_cold - wallet_hot) / neuron.name. ",
-        default='verifier',
+        default="verifier",
     )
 
     parser.add_argument(
@@ -177,11 +178,11 @@ def add_verifier_args(cls, parser):
     )
 
     parser.add_argument(
-            "--neuron.decay_alpha",
-            type=float,
-            help="The decay alpha for the moving average.",
-            default=0.001,
-        )
+        "--neuron.decay_alpha",
+        type=float,
+        help="The decay alpha for the moving average.",
+        default=0.001,
+    )
 
     parser.add_argument(
         "--neuron.max_tokens",
@@ -246,16 +247,16 @@ def add_verifier_args(cls, parser):
         "--neuron.vpermit_tao_limit",
         type=int,
         help="The maximum number of TAO allowed to query a verifier with a vpermit.",
-            default=4096,
-        )
-    
+        default=4096,
+    )
+
     parser.add_argument(
         "--neuron.model_endpoint",
         type=str,
         help="The endpoint to use for the model client.",
         default="http://localhost:8080",
     )
-    
+
     parser.add_argument(
         "--database.host",
         type=str,

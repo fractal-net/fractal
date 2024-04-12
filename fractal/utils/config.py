@@ -314,12 +314,33 @@ def add_verifier_args(cls, parser):
     )
 
     parser.add_argument(
-        "--neuron.enable_inference", 
+        "--api.enable_inference", 
         action="store_true",
         help="If set, the verifier will run inference.",
         dest="enable_inference",
         default=True,
     )
+
+    parser.add_argument(
+        "--api.blacklisted_hotkeys",
+        nargs="+",
+        type=list,
+        help="List of blacklisted hotkeys.",
+        default=[],
+    )
+    parser.add_argument(
+        "--api.whitelisted_hotkeys",
+        nargs="+",
+        type=list,
+        help="List of whitelisted hotkeys.",
+        default=[],
+    )
+    parser.add_argument(
+        "--api.open_access",
+        action="store_true",
+        help="If set, we whitelist all hotkeys by default to test easily. (NOT RECOMMENDED FOR PRODUCTION)",
+    )
+
 
 def config(cls):
     """

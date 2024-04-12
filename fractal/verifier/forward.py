@@ -23,7 +23,6 @@ from pprint import pformat
 
 from fractal.verifier.state import log_event
 from fractal.verifier.challenge import challenge_data
-from fractal.verifier.inference import inference_data
 from fractal.verifier.bonding import compute_all_tiers
 from fractal.verifier.database import get_prover_statistics, total_verifier_requests
 

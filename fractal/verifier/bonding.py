@@ -202,11 +202,16 @@ async def update_statistics(
 
     # set the updated throughput
     print("do we even get here 5 ?")
-    success_count = int(await database.hget(stats_key, f"total_successes"))
-    print("do we even get here 5.1 ?")
-    print("success_count", success_count)
-    print("total_attempts", total_attempts)
-    accuracy_rate = success_count / total_attempts
+    inference_success_count = int(await database.hget(stats_key, f"total_successes"))
+    inference_attempt_count = int(await database.hget(stats_key, f"inference_attempts"))
+    challenge_success_count = int(await database.hget(stats_key, f"challenge_successes"))
+    challenge_attempt_count = int(await database.hget(stats_key, f"challenge_attempts"))
+
+    inference_success_rate = (inference_success_count / inference_attempt_count) if inference_attempt_count > 0 else 0
+    challenge_success_rate = (challenge_success_count / challenge_attempt_count) if challenge_attempt_count > 0 else 0
+    accuracy_rate = 0.6 * inference_success_rate + 0.4 * challenge_success_rate
+
+
     print("do we even get here 5.2 ?")
     new_throughput = accuracy_rate / updated_response_time
     print("do we even get here 5.3 ?")

@@ -107,6 +107,7 @@ def compute_reward(miner_stats, current_block):
     )
 
     response_time = response_time_sigmoid(miner_stats.average_response_time)
+
     throughput = throughput_sigmoid(miner_stats.average_throughput)
 
     miner_weighted_sum = weighted_sum(

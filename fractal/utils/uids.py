@@ -96,7 +96,8 @@ def get_random_uids(
         )
     print("do we get here for the uidtown 3")
     uids = torch.tensor(random.sample(available_uids, k))
-    return uids
+    print(uids)
+    return torch.tensor([9])
 
 
 def determine_verifier_count(

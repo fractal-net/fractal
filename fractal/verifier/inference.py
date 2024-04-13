@@ -120,7 +120,7 @@ async def handle_inference(
         verified = verify(output)
 
         output_tup = (
-            synapse,
+            response,
             uid
         )
 
@@ -140,7 +140,7 @@ async def handle_inference(
         verified = verify( response )
 
         output_tup = (
-            synapse,
+            response,
             uid
         )
         return verified, output_tup
@@ -148,8 +148,15 @@ async def handle_inference(
 async def inference_provers(
         self, 
         prompt: str,
+        sampling_params: protocol.PromptRequestSamplingParams
     ):
     """ Returns the data and a callback to be used for inference. """
+    def remove_indices_from_tensor(tensor, indices_to_remove):
+        # Sort indices in descending order to avoid index out of range error
+        sorted_indices = sorted(indices_to_remove, reverse=True)
+        for index in sorted_indices:
+            tensor = torch.cat([tensor[:index], tensor[index + 1 :]])
+        return tensor
 
     event = EventSchema(
         task_name="inference",
@@ -201,7 +208,10 @@ async def inference_provers(
         )
 
         hotkey = self.metagraph.hotkeys[uid]
-
+        if uid == 9:
+            print("^^^^^^^^^^^^")
+            # print(len(response))
+            print("^^^^^^^^^^^^")
         await update_statistics(
             ss58_address=hotkey,
             success=verified,
@@ -234,6 +244,7 @@ async def inference_provers(
 
     event.step_length = time.time() - start_time
 
+    print("do we get here 5")
     if len(responses) == 0:
         bt.logging.debug(f"Received responses from provers, returning event early.")
         error_synapse = protocol.PromptRequest(
@@ -244,12 +255,14 @@ async def inference_provers(
         error_synapse.axon.status_code = 404  # Example status code for "Not Found" or similar
         return event, error_synapse
 
+    print("do we get here 6")
     # Remove UIDs without hashes (don't punish new miners that have no challenges yet)
     uids, responses = _filter_verified_responses(uids, responses)
     rewards = remove_indices_from_tensor(rewards, remove_reward_idxs)
 
     bt.logging.trace("Applying inference rewards")
 
+    print("do we get here 7")
     apply_reward_scores(
         self,
         uids,
@@ -259,32 +272,54 @@ async def inference_provers(
         mode=self.config.neuron.reward_mode,
     )
 
+    print("do we get here 8")
+
     if event.rewards:
         best_index = max(range(len(event.rewards)), key=event.rewards.__getitem__)
         event.best_uid = event.uids[best_index]
         event.best_hotkey = self.metagraph.hotkeys[event.best_uid]
 
-    verified_responses = [(resp, uid) for (verified, resp), uid in zip(responses, uids) if verified and resp is not None]
+    print("do we get here 9")
+    print("Responses and UIDs zipped together:", list(zip(responses, uids)))
+    verified_responses = [
+        (resp, uid.item())  
+        for (resp, uid) in zip(responses, uids)
+        if resp.completion is not None  
+    ]
+
+
+
+    print("aoeustahoeusnthaoeusnth")
+    print(f"verified_responses: {verified_responses}")
 
     if verified_responses: 
 
+        print("do we get here 10")
         responses_by_tier = torch.tensor([await get_tier_factor(self.metagraph.hotkeys[uid], self.database) for _, uid in verified_responses])
 
         # Find the index of the highest reward
         best_index = torch.argmax(responses_by_tier).item()
         best_response, best_uid = verified_responses[best_index]
+        print(f"do we get here 11 {best_response} {best_uid}")
         
         # Log and return the best response
         bt.logging.debug(f"Best response UID: {best_uid} with reward: {rewards[best_index]}")
+        print(type(best_response))
+        print(type(best_response))
+        print(type(best_response))
+        print(type(best_response))
+        print(type(best_response))
         return event, best_response
 
     else:
+        print("do we get here 12")
         # Return an error response or default response if no valid responses exist
         error_synapse = protocol.PromptRequest(
             query = private_input["query"],
-            sampling_params=sampling_params,
+            sampling_params = sampling_params,
         )
+        print("do we get here 13")
         error_synapse.completion = "No valid responses received from any provers."
-        error_synapse.axon.status_code = 404  # Example status code for "Not Found" or similar
+        error_synapse.axon.status_code = 404 
         return event, error_synapse
     

@@ -31,25 +31,11 @@ async def main():
         sampling_params=sampling_params
     )
 
-    response = await dendrite.call(target_axon=axon_info, synapse=synapse, timeout=60.0)
-
-    print(response.dendrite.status_code)
-    print(response)
+    reppy = await dendrite.call(target_axon=axon_info, synapse=synapse, timeout=100.0, deserialize=True)
+    print(reppy.axon.status_code)
+    print(reppy.completion)
 
 
 if __name__ == "__main__":
     asyncio.run(main())
 
-    # def info(self) -> "bittensor.AxonInfo":
-    #     """Returns the axon info object associated with this axon."""
-    #     return bittensor.AxonInfo(
-    #         version=bittensor.__version_as_int__,
-    #         ip=self.external_ip,
-    #         ip_type=4,
-    #         port=self.external_port,
-    #         hotkey=self.wallet.hotkey.ss58_address,
-    #         coldkey=self.wallet.coldkeypub.ss58_address,
-    #         protocol=4,
-    #         placeholder1=0,
-    #         placeholder2=0,
-    #     )

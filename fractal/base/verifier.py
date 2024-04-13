@@ -34,8 +34,6 @@ from fractal.mock import MockDendrite
 from fractal.base.neuron import BaseNeuron
 from fractal.utils.config import add_verifier_args
 from fractal import protocol
-from fractal.verifier.inference import inference_provers
-from fractal.verifier.state import log_event
 
 
 class BaseVerifierNeuron(BaseNeuron):
@@ -64,6 +62,14 @@ class BaseVerifierNeuron(BaseNeuron):
             db=self.config.database.index,
             password=self.config.database.password,
         )
+
+        try:
+            self.axon = bt.axon(wallet=self.wallet, config=self.config)
+        except Exception as e:
+            bt.logging.error(
+                    f"Failed to create Axon initialize with exception: {e}"
+                    )
+
         self.db_semaphore = asyncio.Semaphore()
 
         if not self.config.mock:
@@ -118,6 +124,20 @@ class BaseVerifierNeuron(BaseNeuron):
         """Verify the incoming synapse."""
         return None
 
+
+    def serve_axon(self):
+        """Serve axon to enable external connections."""
+
+        bt.logging.info("serving ip to chain...")
+        
+        try:
+            self.subtensor.serve_axon(
+                netuid=self.config.netuid,
+                axon=self.axon,
+            )
+        except Exception as e:
+            bt.logging.error(f"Failed to serve Axon with exception: {e}")
+
     def serve_axon(self):
         """Serve axon to enable external connections."""
 
@@ -153,54 +173,6 @@ class BaseVerifierNeuron(BaseNeuron):
         await asyncio.gather(*coroutines)
 
 
-    async def prompt(self, synapse: protocol.PromptRequest) -> protocol.PromptRequest:
-        bt.logging.debug(f"store_user_data() {synapse.axon.dict()}")
-        query = synapse.query
-        try:
-            event, best_response = await inference_provers(self, query)
-            # log_event(self, event)
-            return best_response
-
-        except Exception as e:
-            synapse.completion = f"Failed to run inference_provers with exception: {e}"
-            synapse.axon.status_code = 500
-            synapse.axon.status_message = f"Failed to run inference with exception: {e}"
-            bt.logging.error(f"Failed to run inference_provers with exception: {e}")
-
-        return synapse
-
-
-    async def prompt_blacklist(self, synapse: protocol.PromptRequest) -> Tuple[bool, str]:
-
-            # If debug mode, whitelist everything (NOT RECOMMENDED)
-        if self.config.api.open_access:
-            return False, "Open access: WARNING all whitelisted"
-
-        if synapse.dendrite.hotkey in self.config.api.blacklisted_hotkeys:
-            return True, f"Hotkey {synapse.dendrite.hotkey} blacklisted."
-
-        # If explicitly whitelisted hotkey, allow.
-        if synapse.dendrite.hotkey in self.config.whitelisted_hotkeys:
-            return False, f"Hotkey {synapse.dendrite.hotkey} whitelisted."
-
-        # Otherwise, reject.
-        return (
-            True,
-            f"Hotkey {synapse.dendrite.hotkey} not whitelisted.",
-        )
-
-
-    async def prompt_priority(self, synapse: protocol.PromptRequest) -> float:
-        caller_uid = self.metagraph.hotkeys.index(
-            synapse.dendrite.hotkey
-        )  # Get the caller index.
-        priority = float(
-            self.metagraph.S[caller_uid]
-        )  # Return the stake as the priority.
-        bt.logging.trace(
-            f"Prioritizing {synapse.dendrite.hotkey} with value: ", priority
-        )
-        return priority
 
     def run(self):
         """

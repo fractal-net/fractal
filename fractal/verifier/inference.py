@@ -65,7 +65,7 @@ def verify(output):
         return is_video_valid(binary_video)
 
     except Exception as e:
-        print(f"Error decoding base64 video: {e}")
+        bt.logging.error(f"Error decoding base64 video: {e}")
         return False
 
 def is_video_valid(binary_video):
@@ -75,7 +75,7 @@ def is_video_valid(binary_video):
         video = skvideo.io.vread('temp_video.mp4')
         return video.shape[0] > 0
     except Exception as e:
-        print(f"Error validating video: {e}")
+        bt.logging.warning(f"Error validating video: {e}")
         return False
     finally:
         # Delete the temporary file if it exists
@@ -173,9 +173,7 @@ async def inference_provers(
         set_weights=[],
     )
 
-    print("do we get here")
     private_input = {'query': prompt}
-    print(f"do we get here 2 {prompt}")
     seed = random.randint(1, 2**32 - 1)
 
     inference_params = protocol.PromptRequestSamplingParams(
@@ -185,8 +183,6 @@ async def inference_provers(
     start_time = time.time()
     uids = get_random_uids(self, k=3)
 
-    print(f"uids: {uids}")
-    print("do we get here 3")
 
     tasks = []
     for uid in uids:
@@ -197,8 +193,6 @@ async def inference_provers(
         self.device
     )
 
-    print(f"responses: {responses}")
-    print("do we get here 4")
 
 
     remove_reward_idxs = []
@@ -208,10 +202,6 @@ async def inference_provers(
         )
 
         hotkey = self.metagraph.hotkeys[uid]
-        if uid == 9:
-            print("^^^^^^^^^^^^")
-            # print(len(response))
-            print("^^^^^^^^^^^^")
         await update_statistics(
             ss58_address=hotkey,
             success=verified,
@@ -244,7 +234,6 @@ async def inference_provers(
 
     event.step_length = time.time() - start_time
 
-    print("do we get here 5")
     if len(responses) == 0:
         bt.logging.debug(f"Received responses from provers, returning event early.")
         error_synapse = protocol.PromptRequest(
@@ -255,14 +244,12 @@ async def inference_provers(
         error_synapse.axon.status_code = 404  # Example status code for "Not Found" or similar
         return event, error_synapse
 
-    print("do we get here 6")
     # Remove UIDs without hashes (don't punish new miners that have no challenges yet)
     uids, responses = _filter_verified_responses(uids, responses)
     rewards = remove_indices_from_tensor(rewards, remove_reward_idxs)
 
     bt.logging.trace("Applying inference rewards")
 
-    print("do we get here 7")
     apply_reward_scores(
         self,
         uids,
@@ -272,53 +259,35 @@ async def inference_provers(
         mode=self.config.neuron.reward_mode,
     )
 
-    print("do we get here 8")
 
     if event.rewards:
         best_index = max(range(len(event.rewards)), key=event.rewards.__getitem__)
         event.best_uid = event.uids[best_index]
         event.best_hotkey = self.metagraph.hotkeys[event.best_uid]
 
-    print("do we get here 9")
-    print("Responses and UIDs zipped together:", list(zip(responses, uids)))
     verified_responses = [
         (resp, uid.item())  
         for (resp, uid) in zip(responses, uids)
         if resp.completion is not None  
     ]
 
-
-
-    print("aoeustahoeusnthaoeusnth")
-    print(f"verified_responses: {verified_responses}")
-
     if verified_responses: 
 
-        print("do we get here 10")
         responses_by_tier = torch.tensor([await get_tier_factor(self.metagraph.hotkeys[uid], self.database) for _, uid in verified_responses])
 
         # Find the index of the highest reward
         best_index = torch.argmax(responses_by_tier).item()
         best_response, best_uid = verified_responses[best_index]
-        print(f"do we get here 11 {best_response} {best_uid}")
         
         # Log and return the best response
-        bt.logging.debug(f"Best response UID: {best_uid} with reward: {rewards[best_index]}")
-        print(type(best_response))
-        print(type(best_response))
-        print(type(best_response))
-        print(type(best_response))
-        print(type(best_response))
         return event, best_response
 
     else:
-        print("do we get here 12")
         # Return an error response or default response if no valid responses exist
         error_synapse = protocol.PromptRequest(
             query = private_input["query"],
             sampling_params = sampling_params,
         )
-        print("do we get here 13")
         error_synapse.completion = "No valid responses received from any provers."
         error_synapse.axon.status_code = 404 
         return event, error_synapse

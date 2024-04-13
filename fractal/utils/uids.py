@@ -72,7 +72,6 @@ def get_random_uids(
     candidate_uids = []
     avail_uids = []
 
-    print("do we get here uids")
     for uid in range(self.metagraph.n.item()):
         if uid == self.uid:
             continue
@@ -85,7 +84,6 @@ def get_random_uids(
             avail_uids.append(uid)
             if uid_is_not_excluded:
                 candidate_uids.append(uid)
-    print("do we get here for the uidtown 2")
 
     # Check if candidate_uids contain enough for querying, if not grab all avaliable uids
     available_uids = candidate_uids
@@ -94,11 +92,12 @@ def get_random_uids(
             [uid for uid in avail_uids if uid not in candidate_uids],
             k - len(candidate_uids),
         )
-    print("do we get here for the uidtown 3")
     uids = torch.tensor(random.sample(available_uids, k))
-    print(uids)
-    return torch.tensor([9])
+    return uids
 
+
+def get_specific_uids(n: List[int]) -> torch.LongTensor:
+    return torch.tensor(n)
 
 def determine_verifier_count(
     metagraph: "bt.metagraph"
@@ -129,7 +128,6 @@ async def get_tiered_uids(self, k: int, exclude: List[int] = None) -> torch.Long
         exclude = set(exclude)
 
     uid_tier_mapping = await get_uid_tier_mapping(self.database)  # Assume this method exists to map uids to their tiers
-    print(uid_tier_mapping)
     tiered_uids = {"CHALLENGER": [], "GRANDMASTER": [], "GOLD": [], "SILVER": [], "BRONZE": []}
     for uid in range(self.metagraph.n.item()):
         if uid in exclude or uid == self.uid:

@@ -106,10 +106,6 @@ class Prover(BaseProverNeuron):
         Otherwise, allow the request to be processed further.
         """
         if synapse.dendrite.hotkey not in self.metagraph.hotkeys:
-            print("====================================")
-            print("does the requesting key need to be registered?")
-            print(synapse.dendrite.hotkey)
-            print("====================================")
             # Ignore requests from unrecognized entities.
             bt.logging.trace(
                 f"Blacklisting unrecognized hotkey {synapse.dendrite.hotkey}"

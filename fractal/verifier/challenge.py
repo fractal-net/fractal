@@ -188,7 +188,7 @@ async def challenge_data( self ):
     remove_reward_idxs = []
     for i, (verified, (response, uid)) in enumerate(responses):
         bt.logging.trace(
-            f"Challenge iteration {i} uid {uid} response {str(response.completion if not self.config.mock else response)}"
+            f"Challenge iteration {i} uid {uid}"
         )
 
         hotkey = self.metagraph.hotkeys[uid]

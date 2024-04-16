@@ -17,7 +17,6 @@
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-import math
 import torch
 import random
 import asyncio
@@ -96,6 +95,9 @@ def get_random_uids(
     return uids
 
 
+def get_specific_uids(n: List[int]) -> torch.LongTensor:
+    return torch.tensor(n)
+
 def determine_verifier_count(
     metagraph: "bt.metagraph"
 ) -> int:
@@ -125,7 +127,6 @@ async def get_tiered_uids(self, k: int, exclude: List[int] = None) -> torch.Long
         exclude = set(exclude)
 
     uid_tier_mapping = await get_uid_tier_mapping(self.database)  # Assume this method exists to map uids to their tiers
-    print(uid_tier_mapping)
     tiered_uids = {"CHALLENGER": [], "GRANDMASTER": [], "GOLD": [], "SILVER": [], "BRONZE": []}
     for uid in range(self.metagraph.n.item()):
         if uid in exclude or uid == self.uid:

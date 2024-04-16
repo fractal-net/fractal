@@ -17,7 +17,6 @@
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-import os
 import sys
 import copy
 import torch
@@ -27,13 +26,14 @@ import argparse
 import threading
 import bittensor as bt
 
-from typing import List
+from typing import List, Tuple
 from traceback import print_exception
 from substrateinterface.base import SubstrateInterface
 
 from fractal.mock import MockDendrite
 from fractal.base.neuron import BaseNeuron
 from fractal.utils.config import add_verifier_args
+from fractal import protocol
 
 
 class BaseVerifierNeuron(BaseNeuron):
@@ -62,6 +62,14 @@ class BaseVerifierNeuron(BaseNeuron):
             db=self.config.database.index,
             password=self.config.database.password,
         )
+
+        try:
+            self.axon = bt.axon(wallet=self.wallet, config=self.config)
+        except Exception as e:
+            bt.logging.error(
+                    f"Failed to create Axon initialize with exception: {e}"
+                    )
+
         self.db_semaphore = asyncio.Semaphore()
 
         if not self.config.mock:
@@ -112,13 +120,38 @@ class BaseVerifierNeuron(BaseNeuron):
         self.lock = asyncio.Lock()
 
 
+    def verify(self, synapse: protocol.PromptRequest) -> None:
+        """Verify the incoming synapse."""
+        return None
+
+
+    def serve_axon(self):
+        """Serve axon to enable external connections."""
+
+        bt.logging.info("serving ip to chain...")
+        
+        try:
+            self.subtensor.serve_axon(
+                netuid=self.config.netuid,
+                axon=self.axon,
+            )
+        except Exception as e:
+            bt.logging.error(f"Failed to serve Axon with exception: {e}")
+
     def serve_axon(self):
         """Serve axon to enable external connections."""
 
         bt.logging.info("serving ip to chain...")
         try:
             self.axon = bt.axon(wallet=self.wallet, config=self.config)
+            self.axon.attach(
+                forward_fn=self.prompt,
+                blacklist_fn=self.prompt_blacklist,
+                verify_fn=self.verify,
+                priority_fn=self.prompt_priority,
+            )
 
+            self.axon.start()
             try:
                 self.subtensor.serve_axon(
                     netuid=self.config.netuid,
@@ -138,6 +171,8 @@ class BaseVerifierNeuron(BaseNeuron):
             for _ in range(self.config.neuron.num_concurrent_forwards)
         ]
         await asyncio.gather(*coroutines)
+
+
 
     def run(self):
         """

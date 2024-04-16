@@ -44,7 +44,7 @@ class Verifier(BaseVerifierNeuron):
                 bt.logging.info(f"axons[{i}]: {axon}")
                 check_uid_availability(self.metagraph, i, self.config.neuron.vpermit_tao_limit)
 
-        # inference client
+        # client
         self.client = HttpClient(self.config.neuron.model_endpoint)
 
         # --- Block 

@@ -21,10 +21,11 @@ import sys
 import os
 import typing
 import bittensor as bt
+import aiohttp
 
 from fractal.base.prover import BaseProverNeuron
 from fractal.base.client import HttpClient
-from fractal.protocol import Inference, Challenge
+from fractal.protocol import PromptRequest
 
 class Prover(BaseProverNeuron):
     """
@@ -39,74 +40,41 @@ class Prover(BaseProverNeuron):
         super(Prover, self).__init__(config=config)
         self.client = HttpClient(self.config.neuron.model_endpoint)
 
-    async def inference_request(
-            self, synapse: Inference
-    ):
-        """
-        Sends an inference request to the prover's model endpoint.
 
-        Args:
-            synapse (typing.Union[Challenge, Inference]): The synapse object containing the request data.
-
-        Returns:
-            typing.Tuple[bool, str]: A tuple containing a boolean indicating whether the request was successful,
-                                    and a string containing the response from the prover's model endpoint.
-
-        This function is a placeholder and should be replaced with a call to your prover's model endpoint.
-        """
-        output = await self.client.generate(synapse.query, synapse.sampling_params.seed)
-        await self.client.close_session()
-
-        synapse.completion = output
-
-        return synapse
-
-
-    async def challenge_request(
-            self, synapse: Challenge
-    ):
-        """
-        Sends an inference request to the prover's model endpoint.
-
-        Args:
-            synapse (typing.Union[Challenge, Inference]): The synapse object containing the request data.
-
-        Returns:
-            typing.Tuple[bool, str]: A tuple containing a boolean indicating whether the request was successful,
-                                    and a string containing the response from the prover's model endpoint.
-
-        This function is a placeholder and should be replaced with a call to your prover's model endpoint.
-        """
-
-        output = await self.client.generate(synapse.query, synapse.sampling_params.seed)
-        await self.client.close_session()
-
-        synapse.completion = output
-
-        return synapse
-
-    async def forward(
-        self, synapse: Challenge
-    ) -> Challenge:
+    async def forward(self, synapse: PromptRequest) -> PromptRequest:
         """
         Processes the incoming synapse by performing a predefined operation on the input data.
 
         Args:
-            synapse (typing.Union[Challenge, Inference]): The synapse object containing the 'dummy_input' data.
+            synapse (PromptRequest): The synapse object containing the 'dummy_input' data.
 
         Returns:
-            typing.Union[Challenge, Inference]: The synapse object with the 'dummy_output' field set to twice the 'dummy_input' value.
+            PromptRequest: The synapse object with the 'dummy_output' field set to twice the 'dummy_input' value.
 
         The 'forward' function is a placeholder and should be overridden with logic that is appropriate for
         the prover's intended operation. This method demonstrates a basic transformation of input data.
         """
-        if isinstance(synapse, Inference):
-            return await self.inference_request(synapse)
+        try:
+            output = await self.client.generate(synapse.query, synapse.sampling_params.seed)
+            synapse.completion = output
+            synapse.axon.status_code = 200  # Set success status code
+        except aiohttp.ClientError as e:
+            synapse.completion = f'Client error: {str(e)}'
+            synapse.axon.status_code = 500  # Internal Server Error or another appropriate error code
+        except asyncio.TimeoutError:
+            synapse.completion = 'Request timed out'
+            synapse.axon.status_code = 408  # Timeout status code
+        except Exception as e:
+            synapse.completion = f'Unexpected error: {str(e)}'
+            synapse.axon.status_code = 500  # Internal Server Error or another appropriate error code
+
+        await self.client.close_session()
+        return synapse
+
     
-        return await self.challenge_request(synapse)
 
     async def blacklist(
-        self, synapse: Challenge
+        self, synapse: PromptRequest
     ) -> typing.Tuple[bool, str]:
         """
         Determines whether an incoming request should be blacklisted and thus ignored. Your implementation should
@@ -149,7 +117,7 @@ class Prover(BaseProverNeuron):
         )
         return False, "Hotkey recognized!"
 
-    async def priority(self, synapse: Challenge) -> float:
+    async def priority(self, synapse: PromptRequest) -> float:
         """
         The priority function determines the order in which requests are handled. More valuable or higher-priority
         requests are processed before others. You should design your own priority mechanism with care.
@@ -169,13 +137,12 @@ class Prover(BaseProverNeuron):
         Example priority logic:
         - A higher stake results in a higher priority value.
         """
-        # TODO(developer): Define how miners should prioritize requests.
         caller_uid = self.metagraph.hotkeys.index(
             synapse.dendrite.hotkey
-        )  # Get the caller index.
+        )  
         prirority = float(
             self.metagraph.S[caller_uid]
-        )  # Return the stake as the priority.
+        )  
         bt.logging.trace(
             f"Prioritizing {synapse.dendrite.hotkey} with value: ", prirority
         )

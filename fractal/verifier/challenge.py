@@ -21,13 +21,11 @@ import torch
 import random
 import typing
 import asyncio
-import httpx
 import string
 import bittensor as bt
 
 from fractal import protocol
 from fractal.verifier.event import EventSchema
-from requests.auth import HTTPBasicAuth
 from fractal.constants import CHALLENGE_FAILURE_REWARD
 from fractal.utils.uids import get_random_uids
 from fractal.verifier.bonding import update_statistics, get_tier_factor
@@ -47,7 +45,7 @@ def _filter_verified_responses(uids, responses):
     uids, responses = zip(*not_none_responses)
     return uids, responses
 
-def verify( self, output, ground_truth_hash):
+def verify( output, ground_truth_hash):
 
     output_hash = hashing_function(output)
     if not output_hash == ground_truth_hash:
@@ -61,7 +59,7 @@ def verify( self, output, ground_truth_hash):
     )
     return True
 
-async def handle_challenge( self, uid: int, private_input: typing.Dict, ground_truth_hash: str, sampling_params: protocol.ChallengeSamplingParams ) -> typing.Tuple[bool, protocol.Challenge]:
+async def handle_challenge( self, uid: int, private_input: typing.Dict, ground_truth_hash: str, sampling_params: protocol.PromptRequestSamplingParams ) -> typing.Tuple[bool, protocol.PromptRequest]:
     """
     Handles a challenge sent to a prover and verifies the response.
 
@@ -75,10 +73,11 @@ async def handle_challenge( self, uid: int, private_input: typing.Dict, ground_t
     hotkey = self.metagraph.hotkeys[uid]
     keys = await self.database.hkeys(f"hotkey:{hotkey}")
     bt.logging.trace(f"{len(keys)} stats pulled for hotkey {hotkey}")
+    prompt = private_input["query"]
 
     if not self.config.mock:
-        synapse = protocol.Challenge(
-            query = private_input["query"],
+        synapse = protocol.PromptRequest(
+            query = prompt,
             sampling_params=sampling_params,
         )
 
@@ -91,22 +90,21 @@ async def handle_challenge( self, uid: int, private_input: typing.Dict, ground_t
 
         output = response.completion
         
-        verified = verify( self, output, ground_truth_hash )
+        verified = verify( output, ground_truth_hash )
 
-        output_dict = (
+        output_tup = (
             response,
             uid
         )
-        return verified, output_dict
+        return verified, output_tup
     
     else:
-
-        synapse = protocol.Challenge(
-            query = private_input["query"],
+        synapse = protocol.PromptRequest(
+            query = prompt,
             sampling_params=sampling_params,
         )
 
-
+        prompt = synapse.query
         response = await self.client.generate(prompt, sampling_params.seed)
         await self.client.close_session()
 
@@ -114,11 +112,11 @@ async def handle_challenge( self, uid: int, private_input: typing.Dict, ground_t
 
         verified = verify( self, response, ground_truth_hash )
 
-        output_dict = (
+        output_tup = (
             synapse,
             uid
         )
-        return verified, output_dict
+        return verified, output_tup
 
 
 def generate_challenge( self ):
@@ -154,15 +152,12 @@ async def challenge_data( self ):
         moving_averaged_scores=None,
     )
 
-
     
-
     prompt = generate_challenge(self)
     private_input = {'query': prompt}
     seed = random.randint(1, 2**32 - 1)
 
-
-    sampling_params = protocol.ChallengeSamplingParams(
+    sampling_params = protocol.PromptRequestSamplingParams(
         seed=seed,
     )
 
@@ -193,7 +188,7 @@ async def challenge_data( self ):
     remove_reward_idxs = []
     for i, (verified, (response, uid)) in enumerate(responses):
         bt.logging.trace(
-            f"Challenge iteration {i} uid {uid} response {str(response.completion if not self.config.mock else response)}"
+            f"Challenge iteration {i} uid {uid}"
         )
 
         hotkey = self.metagraph.hotkeys[uid]
@@ -214,7 +209,7 @@ async def challenge_data( self ):
         if self.config.mock:
             event.uids.append(uid)
             event.successful.append(verified)        
-            event.completion_times.append(0.0)
+            event.completion_times.append(0.0) # What is this
             event.task_status_messages.append("mock")
             event.task_status_codes.append(0)
             event.rewards.append(rewards[i].item())
@@ -245,6 +240,7 @@ async def challenge_data( self ):
     bt.logging.debug(f"challenge_data() kept rewards: {rewards} | uids {uids}")
 
     bt.logging.trace("Applying challenge rewards")
+
     apply_reward_scores(
         self,
         uids,

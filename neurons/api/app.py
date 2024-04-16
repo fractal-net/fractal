@@ -187,6 +187,15 @@ class neuron:
 
 
     async def prompt(self, synapse: PromptRequest) -> PromptRequest:
+        """
+        This function is called by the axon when a prompt is received.
+        It calls out to miners and returns the best response to the prompt.
+
+        Args:
+            synapse (PromptRequest): The prompt to be processed.
+        """
+
+
         bt.logging.debug(f"prompt() {synapse.axon.dict()}")
         query = synapse.query
         params = synapse.sampling_params
@@ -207,6 +216,13 @@ class neuron:
 
 
     async def prompt_blacklist(self, synapse: PromptRequest) -> Tuple[bool, str]:
+        """
+        This function is called by the axon when a prompt is received.
+        It checks if the hotkey is blacklisted or whitelisted (allowed to request).
+
+        Args:
+            synapse (PromptRequest): The prompt to be processed.
+        """
 
             # If debug mode, whitelist everything (NOT RECOMMENDED)
         if self.config.api.open_access:
@@ -227,6 +243,14 @@ class neuron:
 
 
     async def prompt_priority(self, synapse: PromptRequest) -> float:
+        """
+        This function is called by the axon when a prompt is received.
+        It returns the priority of the prompt.
+
+        Args:
+            synapse (PromptRequest): The prompt to be processed.
+        """
+
         caller_uid = self.metagraph.hotkeys.index(
             synapse.dendrite.hotkey
         )  # Get the caller index.

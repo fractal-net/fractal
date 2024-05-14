@@ -138,32 +138,6 @@ class BaseVerifierNeuron(BaseNeuron):
         except Exception as e:
             bt.logging.error(f"Failed to serve Axon with exception: {e}")
 
-    def serve_axon(self):
-        """Serve axon to enable external connections."""
-
-        bt.logging.info("serving ip to chain...")
-        try:
-            self.axon = bt.axon(wallet=self.wallet, config=self.config)
-            self.axon.attach(
-                forward_fn=self.prompt,
-                blacklist_fn=self.prompt_blacklist,
-                verify_fn=self.verify,
-                priority_fn=self.prompt_priority,
-            )
-
-            self.axon.start()
-            try:
-                self.subtensor.serve_axon(
-                    netuid=self.config.netuid,
-                    axon=self.axon,
-                )
-            except Exception as e:
-                bt.logging.error(f"Failed to serve Axon with exception: {e}")
-
-        except Exception as e:
-            bt.logging.error(
-                f"Failed to create Axon initialize with exception: {e}"
-            )
 
     async def concurrent_forward(self):
         coroutines = [

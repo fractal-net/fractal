@@ -139,7 +139,7 @@ def add_prover_args(cls, parser):
     )
 
     parser.add_argument(
-        "--disable_auto_update",
+        "--disable_autoupdate",
         action="store_true",
         help="If true, the validator will disable auto-update of its software from the repository.",
         default=False,
@@ -170,7 +170,7 @@ def add_verifier_args(cls, parser):
     )
 
     parser.add_argument(
-        "--disable_auto_update",
+        "--disable_autoupdate",
         action="store_true",
         help="If true, the validator will disable auto-update of its software from the repository.",
         default=False,

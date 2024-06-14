@@ -26,7 +26,6 @@ import bittensor as bt
 
 from fractal import protocol
 from fractal.verifier.event import EventSchema
-from requests.auth import HTTPBasicAuth
 from fractal.constants import CHALLENGE_FAILURE_REWARD
 from fractal.utils.uids import get_random_uids
 from fractal.verifier.bonding import update_statistics, get_tier_factor
